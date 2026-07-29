@@ -18,19 +18,19 @@ One commit per item. Tasks 1–3 are one working whole: the build only goes gree
 - [x] **4. Steps and jumps** — month and year steps and `secondsUntilTimeOfDay` resolve against the
       active calendar rather than `addMonthsUtc` and UTC midnight. Landed with task 3: dropping the
       Gregorian-only `utcMs` from `WorldDate` left the call sites no other option
-- [ ] **5. Seasons from the definition** — boundaries out of the `season.ts` constant and into the
+- [x] **5. Seasons from the definition** — boundaries out of the `season.ts` constant and into the
       calendar files; `summerness` takes the calendar's year length. Golarion's current values
       written into its file so its behaviour is unchanged
-- [ ] **6. The Tarlan calendar** — `data/calendars/tarlan.json`: the twelve months and their
+- [x] **6. The Tarlan calendar** — `data/calendars/tarlan.json`: the twelve months and their
       lengths, the seven weekdays, the four day-20 boundaries, the three festivals, era `TR`, and
       the epoch anchored via `epoch.on`. A test asserting the year is 365 days and no month falls
       outside 30–31
-- [ ] **7. Festivals on the bar** — shown when the day carries one; styling in `kronos.css`
-- [ ] **8. Calendar selection** — a setting listing the bundled calendars alongside the existing
+- [x] **7. Festivals on the bar** — shown when the day carries one; styling in `kronos.css`
+- [x] **8. Calendar selection** — a setting listing the bundled calendars alongside the existing
       file path, with a re-render on change
-- [ ] **9. PF2e divergence** — skip `verifyAgainstSystemClock` for non-Gregorian calendars, and warn
+- [x] **9. PF2e divergence** — skip `verifyAgainstSystemClock` for non-Gregorian calendars, and warn
       once that the system World Clock will show a different date and time
-- [ ] **10. Docs and strings** — the README's *Custom calendars* section rewritten (it currently
+- [x] **10. Docs and strings** — the README's *Custom calendars* section rewritten (it currently
       states month lengths cannot be redefined), Tarlan documented, `lang/en.json` filled in
 
 ## Open

@@ -85,13 +85,22 @@ Anything else that advances world time on its own will compound with this module
 World time is never stored by this module. Everything on the bar is derived from
 `game.time.worldTime`, and every control calls `game.time.advance()`.
 
-Dates are reconstructed with the same formula PF2e's own World Clock uses — world creation
-timestamp plus `worldTime` seconds, read in UTC, with the Absalom Reckoning year offset applied —
-so the two never disagree. At startup the module compares itself against the system clock and logs
-a warning if they drift.
+There are two ways a date gets built, and the calendar in force decides which.
 
-Because PF2e's clock is Gregorian underneath, months have Gregorian lengths and Gregorian leap
-years rather than canon Golarion's eight-year rule.
+**Golarion** is reconstructed with the same formula PF2e's own World Clock uses — world creation
+timestamp plus `worldTime` seconds, read in UTC, with the Absalom Reckoning year offset applied — so
+the two never disagree. At startup the module compares itself against the system clock and logs a
+warning if they drift. Because that clock is Gregorian underneath, months have Gregorian lengths and
+Gregorian leap years rather than canon Golarion's eight-year rule.
+
+**A calendar with months of its own** counts days from its own anchor instead, which is what lets it
+have months no Gregorian year contains. It gives up agreement with the PF2e World Clock to do that —
+the two will show different dates for the same moment, and nothing can reconcile them. The startup
+log says which calendar is in force and, when it is one of these, that the system clock will differ.
+Pick one as the calendar of record.
+
+Either way `worldTime` itself is untouched, so switching calendars in a running world relabels the
+same instant rather than moving it.
 
 ## Controls
 
@@ -125,13 +134,82 @@ overwrites weather set by hand, and scenes can opt out individually in their con
 condition-to-effect mapping is built from whatever is registered in `CONFIG.weatherEffects`, so
 ambiences added by other modules are available as targets.
 
-## Custom calendars
+## Calendars
 
-Month names, weekday names, era and year offset come from a JSON file. Point the *Calendar file*
-setting at your own copy of `data/calendars/golarion-ar.json` to rename them.
+The *Calendar* setting picks between the ones that ship with the module:
 
-This changes display only. Month lengths come from the Gregorian structure the PF2e sync is built
-on and cannot be redefined.
+| Calendar | Months | Agrees with the PF2e World Clock |
+| --- | --- | --- |
+| Golarion — Absalom Reckoning | Gregorian lengths, leap years | Yes |
+| Tarlan | Twelve of its own, 30 or 31 days, 365-day year | No |
+
+### Tarlan
+
+A homebrew reckoning where no month is shorter than 30 days or longer than 31, so the seasons fall on
+the same dates every year. Twelve months named for the gods, and seven weekdays:
+**Verdrag · Eldora · Thalorin · Drusten · Mithralis · Sylvain · Solara**.
+
+| # | Month | Days | # | Month | Days |
+| --- | --- | --- | --- | --- | --- |
+| 1 | **Enudar** | 31 | 7 | **Ellariel** | 31 |
+| 2 | Halveris | 30 | 8 | Lornathis | 30 |
+| 3 | Zherial | 31 | 9 | Tierbrak | 30 |
+| 4 | Fideril | 30 | 10 | Elyndrel | 30 |
+| 5 | Krigvaldar | 31 | 11 | Sovinaris | 30 |
+| 6 | Arkhane | 30 | 12 | **Zyullian** | 31 |
+
+The seasons turn on the **twentieth** of Zherial, Arkhane, Tierbrak and Zyullian — and the month
+lengths were chosen to put those four days on the equinoxes and solstices the solar model actually
+computes. At the default latitude the sun sets around 16:05 on Zyullian 20 and around 19:55 on
+Arkhane 20, so midwinter evenings darken hours earlier than midsummer ones without anything being
+configured. A test asserts that alignment against the solar model, so reshuffling a month's length
+cannot quietly break it.
+
+Enudar, Ellariel and Zyullian are the months of Enudrani, Ellaryn and Z'yull. They are long months,
+and each carries a festival the bar names on the day: *Enudrani's Renewal* on Enudar 1, *Ellaryn's
+Vigil* on Ellariel 15, and *Z'yull's Reckoning* on Zyullian 20 — the winter solstice, the longest
+night of the year.
+
+Its year is 365 days with no leap rule. That is the price of the 30-to-31 range: a leap day would
+need a 32-day month, or a day belonging to no month at all.
+
+### Anchoring a calendar to your world
+
+A calendar with months of its own has to be told which instant its reckoning starts from, and it is
+declared in Gregorian terms because that is what you can read off the bar:
+
+```json
+"epoch": { "on": "2025-04-14T21:30:00Z", "year": 1000, "month": 1, "day": 1 }
+```
+
+That reads as *the moment the bar showed 14 April 2025, 21:30 is Enudar 1 of 1000 TR*. Absalom
+Reckoning years are Gregorian plus 2700 and the month and day are identical, so a bar reading
+`14 Gozran 4725 AR` is `2025-04-14`. The instant's hour and weekday carry across, so switching a
+running world to it changes the names and the year — not the time on the clock, and not the day of
+the week.
+
+Tarlan ships anchored at `2025-01-01T00:00:00Z`; edit `epoch.on` in
+`data/calendars/tarlan.json` to put your own campaign's date there.
+
+### Writing your own
+
+Point the *Calendar file* setting at a JSON file and it overrides the choice above. Copy either
+bundled file from `data/calendars/` as a starting point.
+
+`months` accepts two shapes, and which one you use decides the structure:
+
+```json
+"months": ["Abadius", "Calistril", "..."]                      // Gregorian lengths, PF2e-synced
+"months": [{ "name": "Enudar", "days": 31 }, "..."]            // lengths of its own
+```
+
+Bare names keep the Gregorian structure, so a calendar file written for an earlier version still
+means what it meant. State day counts and the calendar owns its year — any number of months, any
+number of weekdays, and `seasons`, `festivals` and `epoch` are yours to place. `seasons` and
+`festivals` are optional; omitting `seasons` inherits the northern-hemisphere Gregorian boundaries.
+
+A malformed file is rejected in favour of the calendar already in force, and the console says which
+field was wrong.
 
 ## Development
 
