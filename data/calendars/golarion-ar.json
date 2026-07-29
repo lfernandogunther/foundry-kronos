@@ -1,0 +1,20 @@
+{
+  "name": "Golarion — Absalom Reckoning",
+  "era": "AR",
+  "yearOffset": 2700,
+  "months": [
+    "Abadius",
+    "Calistril",
+    "Pharast",
+    "Gozran",
+    "Desnus",
+    "Sarenith",
+    "Erastus",
+    "Arodus",
+    "Rova",
+    "Lamashan",
+    "Neth",
+    "Kuthona"
+  ],
+  "weekdays": ["Moonday", "Toilday", "Wealday", "Oathday", "Fireday", "Starday", "Sunday"]
+}
