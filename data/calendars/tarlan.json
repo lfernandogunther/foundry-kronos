@@ -1,0 +1,32 @@
+{
+  "name": "Tarlan",
+  "era": "TR",
+  "yearOffset": 0,
+  "months": [
+    { "name": "Enudar", "days": 31 },
+    { "name": "Halveris", "days": 30 },
+    { "name": "Zherial", "days": 31 },
+    { "name": "Fideril", "days": 30 },
+    { "name": "Krigvaldar", "days": 31 },
+    { "name": "Arkhane", "days": 30 },
+    { "name": "Ellariel", "days": 31 },
+    { "name": "Lornathis", "days": 30 },
+    { "name": "Tierbrak", "days": 30 },
+    { "name": "Elyndrel", "days": 30 },
+    { "name": "Sovinaris", "days": 30 },
+    { "name": "Zyullian", "days": 31 }
+  ],
+  "weekdays": ["Verdrag", "Eldora", "Thalorin", "Drusten", "Mithralis", "Sylvain", "Solara"],
+  "seasons": [
+    { "month": 3, "day": 20, "season": "spring" },
+    { "month": 6, "day": 20, "season": "summer" },
+    { "month": 9, "day": 20, "season": "autumn" },
+    { "month": 12, "day": 20, "season": "winter" }
+  ],
+  "festivals": [
+    { "month": 1, "day": 1, "name": "Enudrani's Renewal" },
+    { "month": 7, "day": 15, "name": "Ellaryn's Vigil" },
+    { "month": 12, "day": 20, "name": "Z'yull's Reckoning" }
+  ],
+  "epoch": { "on": "2025-01-01T00:00:00Z", "year": 1000, "month": 1, "day": 1 }
+}
