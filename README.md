@@ -9,25 +9,40 @@ temperature, with GM controls for moving time. Built for the Pathfinder 2e syste
 
 Players see the readout. Everything right of the separator is GM-only.
 
-## Installing for testing
+## Installing
 
-The repository folder *is* the module folder, so build it and point Foundry at it:
+The build produces a self-contained module folder at `dist/pf2e-calendar-bar/` — `module.json`
+beside `scripts/`, `styles/`, `lang/` and `data/`, and nothing else. That folder is what Foundry
+installs; sources, tests and `node_modules` stay out of it.
 
 ```bash
 npm install
-npm run build
+npm run install:foundry
 ```
 
-Then link it into your Foundry data directory:
+That builds and copies it into your Foundry modules folder. If it cannot find one, give it the
+*User Data Path* from Foundry's setup screen:
 
 ```bash
-ln -s "$(pwd)" "<FOUNDRY_DATA>/Data/modules/pf2e-calendar-bar"
+FOUNDRY_DATA="$HOME/Library/Application Support/FoundryVTT" npm run install:foundry
 ```
 
-`<FOUNDRY_DATA>` is the path shown under *Configuration → User Data Path* in Foundry's setup
-screen. Restart Foundry, then enable **PF2e Calendar Bar** in *Manage Modules*.
+It refuses to overwrite a directory that is not a previous install of this module, so a mistyped
+path cannot eat another module.
 
-While working on it, `npm run dev` rebuilds on save — reload the browser tab to pick changes up.
+Restart Foundry, then enable **PF2e Calendar Bar** in *Manage Modules*.
+
+To install by hand instead — onto another machine, or a server you only have file access to — run
+`npm run build` and copy `dist/pf2e-calendar-bar/` into `<FOUNDRY_DATA>/Data/modules/`.
+
+While working on it, `npm run dev` rebuilds the script on save. Note it does **not** re-copy the
+static files or re-install; run `npm run install:foundry` after changing `module.json`, `lang/`,
+`styles/` or `data/`.
+
+## Modules that conflict
+
+Anything else that advances world time on its own will compound with this module's real-time clock:
+**Simple Calendar**, **about-time** and **chronos** all do. Run one timekeeper at a time.
 
 ## How it keeps time
 

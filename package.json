@@ -5,8 +5,9 @@
   "type": "module",
   "description": "Foundry VTT v14 calendar, time and weather toolbar for Pathfinder 2e",
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && node tools/package.mjs",
     "dev": "vite build --watch",
+    "install:foundry": "npm run build && node tools/install.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -12,7 +12,7 @@
       "name": "L Fernando Gunther"
     }
   ],
-  "esmodules": ["dist/module.js"],
+  "esmodules": ["scripts/module.js"],
   "styles": ["styles/calendar-bar.css"],
   "languages": [
     {

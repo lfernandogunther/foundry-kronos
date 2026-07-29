@@ -1,11 +1,15 @@
 import { defineConfig } from "vite";
 
-// The repository folder *is* the module folder: Foundry loads dist/module.js while
-// templates/, styles/, lang/ and data/ are served from the repo root as-is. That keeps
-// the build to a single JS bundle and avoids a copy plugin.
+import { MODULE_ID } from "./src/constants.js";
+
+/**
+ * Builds the JavaScript into the packaged module folder that Foundry will load, laid out the way
+ * a hand-written module is: `module.json` at the root beside `scripts/`, `styles/`, `lang/` and
+ * `data/`. The static folders are copied in afterwards by the packaging step.
+ */
 export default defineConfig({
   build: {
-    outDir: "dist",
+    outDir: `dist/${MODULE_ID}/scripts`,
     emptyOutDir: true,
     sourcemap: true,
     // Foundry ships readable module code; minifying only makes console errors harder to trace.
