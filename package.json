@@ -13,6 +13,7 @@
     "check": "npm run typecheck && npm run test && npm run build"
   },
   "devDependencies": {
+    "@types/node": "^26.1.2",
     "typescript": "^7.0.2",
     "vite": "^8.1.5",
     "vitest": "^4.1.10"

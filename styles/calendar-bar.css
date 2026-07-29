@@ -1,2 +1,126 @@
-/* Toolbar styling arrives with the readout task; this file exists so the manifest
-   reference resolves from the first install. */
+/* The bar is a single dark pill floating over the canvas, matching the supplied design. */
+
+#pf2e-calendar-bar {
+  z-index: 60;
+  pointer-events: auto;
+}
+
+#pf2e-calendar-bar .pcb-root {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+
+  padding: 0.5rem 1.4rem;
+  border-radius: 999px;
+
+  background: rgb(45 36 38 / 96%);
+  border: 1px solid rgb(0 0 0 / 45%);
+  box-shadow: 0 3px 12px rgb(0 0 0 / 45%);
+
+  color: #f4f0ee;
+  font-family: var(--font-primary, sans-serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+
+  /* Dragging the bar should not select its text. */
+  user-select: none;
+  cursor: grab;
+}
+
+#pf2e-calendar-bar .pcb-root:active {
+  cursor: grabbing;
+}
+
+#pf2e-calendar-bar .pcb-readout {
+  display: inline-flex;
+  align-items: center;
+}
+
+#pf2e-calendar-bar .pcb-season {
+  font-size: 1.35rem;
+}
+
+#pf2e-calendar-bar .pcb-year,
+#pf2e-calendar-bar .pcb-time {
+  font-variant-numeric: tabular-nums;
+}
+
+#pf2e-calendar-bar .pcb-temp {
+  min-width: 2.4rem;
+  font-variant-numeric: tabular-nums;
+}
+
+#pf2e-calendar-bar .pcb-clickable {
+  cursor: pointer;
+}
+
+#pf2e-calendar-bar .pcb-clickable:hover {
+  color: #ffd89b;
+}
+
+#pf2e-calendar-bar .pcb-separator {
+  width: 1px;
+  height: 1.4rem;
+  margin: 0 0.35rem;
+  background: rgb(255 255 255 / 35%);
+}
+
+#pf2e-calendar-bar .pcb-button {
+  all: unset;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+
+  color: inherit;
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+
+#pf2e-calendar-bar .pcb-button:hover {
+  background: rgb(255 255 255 / 14%);
+}
+
+#pf2e-calendar-bar .pcb-button.pcb-active {
+  color: #8fe08f;
+}
+
+/* The clock is switched on but something outside it is holding time still. */
+#pf2e-calendar-bar .pcb-button.pcb-stalled {
+  color: #e0b34f;
+}
+
+#pf2e-calendar-bar .pcb-unit {
+  height: 1.9rem;
+  padding: 0 0.4rem;
+
+  background: rgb(255 255 255 / 10%);
+  border: none;
+  border-radius: 0.4rem;
+
+  color: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#pf2e-calendar-bar .pcb-unit option {
+  color: initial;
+}
+
+.pcb-override .form-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.pcb-override label {
+  flex: 0 0 9rem;
+}

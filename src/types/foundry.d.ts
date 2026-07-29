@@ -6,8 +6,8 @@
  */
 
 declare const Hooks: {
-  on(hook: string, fn: (...args: never[]) => unknown): number;
-  once(hook: string, fn: (...args: never[]) => unknown): number;
+  on(hook: string, fn: (...args: unknown[]) => unknown): number;
+  once(hook: string, fn: (...args: unknown[]) => unknown): number;
   off(hook: string, id: number): void;
   callAll(hook: string, ...args: unknown[]): boolean;
 };
@@ -46,7 +46,12 @@ declare const game: {
   system: { id: string; version: string };
   user: FoundryUser;
   users: { activeGM: FoundryUser | null };
-  scenes: { current: FoundryScene | null; contents: FoundryScene[] } | null;
+  scenes: {
+    viewed?: FoundryScene | null;
+    active?: FoundryScene | null;
+    current?: FoundryScene | null;
+    contents: FoundryScene[];
+  } | null;
   paused: boolean;
   combats?: { active?: { started: boolean } | null };
   i18n: {

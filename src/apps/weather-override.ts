@@ -1,0 +1,93 @@
+import { MODULE_ID } from "../constants.js";
+import type { WorldDate } from "../time/pf2e-clock.js";
+import { isWeatherCondition, WEATHER_CONDITIONS } from "../weather/generator.js";
+import { clearOverride, isOverridden, overrideWeather, weatherFor } from "../weather/state.js";
+import { applySceneWeather } from "../weather/scene-sync.js";
+
+const t = (key: string): string => game.i18n?.localize(key) ?? key;
+
+/**
+ * Lets the GM replace the generated weather for the current day.
+ *
+ * Overrides are stored per day and are what stops the value drifting back on the next render —
+ * ordinary days are regenerated from the date, so without a stored override there would be
+ * nothing to hold a manual choice in place.
+ */
+export async function openWeatherOverride(date: WorldDate): Promise<void> {
+  if (!game.user.isGM) return;
+
+  const current = weatherFor(date);
+  const options = WEATHER_CONDITIONS.map(
+    (condition) =>
+      `<option value="${condition}" ${condition === current.condition ? "selected" : ""}>${t(`PF2ECALENDARBAR.Weather.${condition}`)}</option>`,
+  ).join("");
+
+  const content = `
+    <form class="pcb-override">
+      <div class="form-group">
+        <label for="pcb-condition">${t("PF2ECALENDARBAR.Override.Condition")}</label>
+        <select id="pcb-condition" name="condition">${options}</select>
+      </div>
+      <div class="form-group">
+        <label for="pcb-temp-min">${t("PF2ECALENDARBAR.Override.TempMin")}</label>
+        <input id="pcb-temp-min" type="number" name="tempMin" value="${current.tempMin}" />
+      </div>
+      <div class="form-group">
+        <label for="pcb-temp-max">${t("PF2ECALENDARBAR.Override.TempMax")}</label>
+        <input id="pcb-temp-max" type="number" name="tempMax" value="${current.tempMax}" />
+      </div>
+      <p class="notes">${t("PF2ECALENDARBAR.Override.Hint")}</p>
+    </form>`;
+
+  const dialog = foundry.applications.api.DialogV2;
+  if (!dialog?.prompt) {
+    console.error(`${MODULE_ID} | DialogV2 is unavailable; cannot open the weather override`);
+    return;
+  }
+
+  const buttons: Record<string, unknown>[] = [
+    {
+      action: "save",
+      icon: "fa-solid fa-check",
+      label: t("PF2ECALENDARBAR.Override.Save"),
+      default: true,
+      callback: (_event: unknown, button: { form?: HTMLFormElement }): void => {
+        const form = button.form;
+        if (!form) return;
+        const data = new FormData(form);
+        const condition = data.get("condition");
+        if (!isWeatherCondition(condition)) return;
+
+        const tempMin = Number(data.get("tempMin"));
+        const tempMax = Number(data.get("tempMax"));
+        if (!Number.isFinite(tempMin) || !Number.isFinite(tempMax)) return;
+
+        // A maximum below the minimum would make the hourly curve run backwards.
+        const low = Math.min(tempMin, tempMax);
+        const high = Math.max(tempMin, tempMax);
+
+        void overrideWeather(date, { condition, tempMin: low, tempMax: high }).then(() =>
+          applySceneWeather(condition),
+        );
+      },
+    },
+  ];
+
+  if (isOverridden(date)) {
+    buttons.push({
+      action: "clear",
+      icon: "fa-solid fa-rotate-left",
+      label: t("PF2ECALENDARBAR.Override.Clear"),
+      callback: (): void => {
+        void clearOverride().then(() => applySceneWeather(weatherFor(date).condition));
+      },
+    });
+  }
+
+  await dialog.prompt({
+    window: { title: t("PF2ECALENDARBAR.Override.Title") },
+    content,
+    buttons,
+    rejectClose: false,
+  });
+}
