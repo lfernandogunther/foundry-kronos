@@ -4,7 +4,15 @@ import { warnAboutDarknessConflicts } from "./scene/conflicts.js";
 import { applySceneDarkness, isDarknessControlled } from "./scene/darkness.js";
 import { MODULE_ID, REQUIRED_SYSTEM } from "./constants.js";
 import { getCalendarFile, getCalendarId, getWeatherEffectMap, isWeatherEnabled, registerSettings, setWeatherEffectMap } from "./settings.js";
-import { bundledCalendar, calendarFromSystem, DEFAULT_CALENDAR_ID, loadCalendar, setCalendar } from "./time/calendar.js";
+import {
+  bundledCalendar,
+  calendarFromSystem,
+  DEFAULT_CALENDAR_ID,
+  getCalendar,
+  hasOwnMonths,
+  loadCalendar,
+  setCalendar,
+} from "./time/calendar.js";
 import { dateKeyOf, getWorldDate } from "./time/clock.js";
 import { verifyAgainstSystemClock } from "./time/pf2e-clock.js";
 import { refreshTicker, stopTicker } from "./time/ticker.js";
@@ -51,6 +59,29 @@ async function resolveCalendar(): Promise<void> {
 }
 
 /**
+ * Says which clock the bar is keeping, and how it relates to the system's.
+ *
+ * Agreement with the PF2e World Clock is a guarantee worth checking while it holds, and a calendar
+ * with months of its own gives it up deliberately. Both cases need saying — the second one loudly
+ * enough that a GM comparing two different dates on screen knows why before asking.
+ */
+function reportClockAgreement(): void {
+  const calendar = getCalendar();
+
+  if (!hasOwnMonths(calendar)) {
+    console.log(`${MODULE_ID} | ${verifyAgainstSystemClock().detail}`);
+    return;
+  }
+
+  const date = getWorldDate();
+  console.log(
+    `${MODULE_ID} | reckoning in "${calendar.name}": ${date.day} ${date.monthName} ${date.year} ${date.era}, ${date.weekdayName}. ` +
+      `Its months are its own, so the PF2e World Clock shows a different date for this same moment. ` +
+      `That is expected and the two cannot be reconciled; run one of them as the calendar of record.`,
+  );
+}
+
+/**
  * Seeds the condition-to-effect mapping from whatever ambiences are registered in this world.
  * Written once, by one client, so a GM editing it later is not overwritten on the next load.
  */
@@ -80,8 +111,7 @@ Hooks.once("ready", () => {
 
     await resolveCalendar();
 
-    const agreement = verifyAgainstSystemClock();
-    console.log(`${MODULE_ID} | ${agreement.detail}`);
+    reportClockAgreement();
 
     await seedWeatherEffectMap();
 

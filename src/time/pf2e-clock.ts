@@ -79,6 +79,10 @@ export function utcMsToWorldTime(utcMs: number): number {
  *
  * The whole point of reproducing PF2e's formula is that the two never diverge, so a mismatch is
  * a real defect worth surfacing loudly rather than a cosmetic difference.
+ *
+ * This compares the *instant*, not the displayed date, so it says nothing about a calendar carrying
+ * its own months — those are expected to read differently and calling this for one would report
+ * agreement while the bar plainly disagrees. Ask only for the Gregorian structure.
  */
 export function verifyAgainstSystemClock(): { agrees: boolean; detail: string } {
   const systemClock = game.pf2e?.worldClock;
