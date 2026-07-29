@@ -1,0 +1,20 @@
+{
+  "name": "pf2e-calendar-bar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Foundry VTT v14 calendar, time and weather toolbar for Pathfinder 2e",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run typecheck && npm run test && npm run build"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.1.5",
+    "vitest": "^4.1.10"
+  }
+}
