@@ -2,6 +2,7 @@ import { MODULE_ID } from "../constants.js";
 import { type CalendarDefinition, getCalendar, hasOwnMonths } from "./calendar.js";
 import { addMonthsUtc, addYearsUtc, dayOfYear, daysInYear } from "./gregorian.js";
 import { readWorldCreatedOnMs, worldTimeToUtcMs } from "./pf2e-clock.js";
+import { type Season, seasonOf } from "./season.js";
 import {
   addMonths,
   addYears,
@@ -44,6 +45,8 @@ export interface WorldDate {
   dayOfYear: number;
   /** How long the year holding this day is, for the solar and weather curves. */
   daysInYear: number;
+  /** Resolved from the calendar's own boundaries, so no caller has to know where they came from. */
+  season: Season;
   monthName: string;
   weekdayName: string;
   era: string;
@@ -98,6 +101,7 @@ export function describeGregorian(utcMs: number, calendar: CalendarDefinition, w
     weekdayIndex,
     dayOfYear: dayOfYear(utcMs),
     daysInYear: daysInYear(gregorianYear),
+    season: seasonOf(month, day, calendar.seasons),
     ...named(calendar, month, weekdayIndex),
     era: calendar.era,
     calendarName: calendar.name,
@@ -121,6 +125,7 @@ function describeFixed(reckoning: Reckoning, calendar: CalendarDefinition, world
     weekdayIndex: date.weekdayIndex,
     dayOfYear: date.dayOfYear,
     daysInYear: reckoning.daysInYear,
+    season: seasonOf(date.month, date.day, calendar.seasons),
     ...named(calendar, date.month, date.weekdayIndex),
     era: calendar.era,
     calendarName: calendar.name,

@@ -1,6 +1,6 @@
 import { getClimate, getWeatherOverride, setWeatherOverride } from "../settings.js";
 import { dateKeyOf, type WorldDate } from "../time/clock.js";
-import { seasonOf, summerness } from "../time/season.js";
+import { summerness } from "../time/season.js";
 import { type DailyWeather, generateDailyWeather } from "./generator.js";
 
 /**
@@ -21,7 +21,7 @@ export function weatherFor(date: WorldDate): DailyWeather {
 
   return generateDailyWeather(
     key,
-    seasonOf(date.month, date.day),
+    date.season,
     summerness(date.dayOfYear, date.daysInYear),
     getClimate(),
   );

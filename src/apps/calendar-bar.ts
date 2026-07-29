@@ -11,7 +11,7 @@ import {
   setStepUnit,
 } from "../settings.js";
 import { getWorldDate, secondsUntilTimeOfDay, type WorldDate } from "../time/clock.js";
-import { SEASON_ICONS, seasonOf } from "../time/season.js";
+import { SEASON_ICONS } from "../time/season.js";
 import { solarEvents } from "../time/sun.js";
 import { haltReason } from "../time/ticker.js";
 import { isStepUnit, STEP_UNITS, type StepUnit, stepSeconds } from "../time/units.js";
@@ -82,8 +82,7 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
     const root = document.createElement("div");
     root.className = "kronos-root";
 
-    const season = seasonOf(date.month, date.day);
-    root.append(readout("kronos-season", SEASON_ICONS[season], t(`KRONOS.Season.${season}`)));
+    root.append(readout("kronos-season", SEASON_ICONS[date.season], t(`KRONOS.Season.${date.season}`)));
 
     const day = String(date.day).padStart(2, "0");
     root.append(readout("kronos-date", `${day} ${date.monthName}`, date.weekdayName));

@@ -27,10 +27,16 @@ export const DEFAULT_SEASON_BOUNDARIES: readonly SeasonBoundary[] = [
   { month: 12, day: 21, season: "winter" },
 ];
 
-/** @param month 1-12 */
-export function seasonOf(month: number, day: number): Season {
-  let current: Season = "winter"; // January and February precede the first boundary.
-  for (const boundary of DEFAULT_SEASON_BOUNDARIES) {
+/**
+ * The season a date falls in, given the boundaries the calendar states.
+ *
+ * @param boundaries in chronological order, which parsing guarantees
+ */
+export function seasonOf(month: number, day: number, boundaries: readonly SeasonBoundary[]): Season {
+  // Before the first boundary the wheel has not turned yet, so the season is still the one the
+  // previous year ended in — whichever the last boundary names.
+  let current: Season = boundaries.at(-1)?.season ?? "winter";
+  for (const boundary of boundaries) {
     if (month > boundary.month || (month === boundary.month && day >= boundary.day)) {
       current = boundary.season;
     }

@@ -110,7 +110,10 @@ function readSeasons(value: unknown, monthCount: number): SeasonBoundary[] | nul
     if (!isPositiveInteger(boundary.day) || !isSeason(boundary.season)) return null;
     boundaries.push({ month: boundary.month, day: boundary.day, season: boundary.season });
   }
-  return boundaries;
+
+  // Resolving a season walks these in order and keeps the last one passed, so a file listing them
+  // out of order would silently mislabel part of the year.
+  return boundaries.sort((a, b) => a.month - b.month || a.day - b.day);
 }
 
 function readFestivals(value: unknown, monthCount: number): Festival[] | null {

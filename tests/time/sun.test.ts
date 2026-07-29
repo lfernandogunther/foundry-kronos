@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { seasonOf, summerness } from "../../src/time/season.js";
+import { parseCalendar } from "../../src/time/calendar.js";
+import { DEFAULT_SEASON_BOUNDARIES, seasonOf, type SeasonBoundary, summerness } from "../../src/time/season.js";
 import { daylightMinutes, declination, solarEvents } from "../../src/time/sun.js";
 
 /** Central Europe, the default the module ships with. */
@@ -80,31 +81,78 @@ describe("solarEvents at extreme latitudes", () => {
 });
 
 describe("seasonOf", () => {
+  const gregorian = (month: number, day: number): string => seasonOf(month, day, DEFAULT_SEASON_BOUNDARIES);
+
   it("places each season between its boundaries", () => {
-    expect(seasonOf(1, 15)).toBe("winter");
-    expect(seasonOf(4, 10)).toBe("spring");
-    expect(seasonOf(7, 30)).toBe("summer");
-    expect(seasonOf(10, 5)).toBe("autumn");
-    expect(seasonOf(12, 25)).toBe("winter");
+    expect(gregorian(1, 15)).toBe("winter");
+    expect(gregorian(4, 10)).toBe("spring");
+    expect(gregorian(7, 30)).toBe("summer");
+    expect(gregorian(10, 5)).toBe("autumn");
+    expect(gregorian(12, 25)).toBe("winter");
   });
 
   it("switches on the boundary day itself, not the day after", () => {
-    expect(seasonOf(3, 19)).toBe("winter");
-    expect(seasonOf(3, 20)).toBe("spring");
-    expect(seasonOf(6, 20)).toBe("spring");
-    expect(seasonOf(6, 21)).toBe("summer");
-    expect(seasonOf(9, 21)).toBe("summer");
-    expect(seasonOf(9, 22)).toBe("autumn");
-    expect(seasonOf(12, 20)).toBe("autumn");
-    expect(seasonOf(12, 21)).toBe("winter");
+    expect(gregorian(3, 19)).toBe("winter");
+    expect(gregorian(3, 20)).toBe("spring");
+    expect(gregorian(6, 20)).toBe("spring");
+    expect(gregorian(6, 21)).toBe("summer");
+    expect(gregorian(9, 21)).toBe("summer");
+    expect(gregorian(9, 22)).toBe("autumn");
+    expect(gregorian(12, 20)).toBe("autumn");
+    expect(gregorian(12, 21)).toBe("winter");
   });
 
   it("covers every day of the year", () => {
     for (let month = 1; month <= 12; month++) {
       for (let day = 1; day <= 28; day++) {
-        expect(["winter", "spring", "summer", "autumn"]).toContain(seasonOf(month, day));
+        expect(["winter", "spring", "summer", "autumn"]).toContain(gregorian(month, day));
       }
     }
+  });
+
+  // A calendar states its own boundaries, and the year does not have to begin in winter.
+  describe("with boundaries of the calendar's own", () => {
+    const onTheTwentieth: SeasonBoundary[] = [
+      { month: 3, day: 20, season: "spring" },
+      { month: 6, day: 20, season: "summer" },
+      { month: 9, day: 20, season: "autumn" },
+      { month: 12, day: 20, season: "winter" },
+    ];
+
+    it("switches on the days the calendar names, not the Gregorian ones", () => {
+      expect(seasonOf(6, 20, onTheTwentieth)).toBe("summer");
+      expect(seasonOf(6, 20, DEFAULT_SEASON_BOUNDARIES)).toBe("spring");
+    });
+
+    it("carries the last season of the year into the start of the next one", () => {
+      expect(seasonOf(1, 1, onTheTwentieth)).toBe("winter");
+      expect(seasonOf(3, 19, onTheTwentieth)).toBe("winter");
+    });
+
+    it("does not assume the year opens in winter", () => {
+      const summerFirst: SeasonBoundary[] = [
+        { month: 4, day: 1, season: "autumn" },
+        { month: 7, day: 1, season: "winter" },
+        { month: 10, day: 1, season: "spring" },
+      ];
+      // Nothing precedes April, and the wheel ended the previous year in spring.
+      expect(seasonOf(1, 1, summerFirst)).toBe("spring");
+      expect(seasonOf(4, 1, summerFirst)).toBe("autumn");
+    });
+
+    it("reads boundaries listed out of order, because parsing sorts them", () => {
+      const shuffled = parseCalendar({
+        name: "Shuffled",
+        era: "X",
+        yearOffset: 0,
+        months: DEFAULT_SEASON_BOUNDARIES.map((_, index) => `Month${index + 1}`).concat(
+          Array.from({ length: 8 }, (_, index) => `Extra${index + 1}`),
+        ),
+        weekdays: ["a", "b", "c", "d", "e", "f", "g"],
+        seasons: [...onTheTwentieth].reverse(),
+      });
+      expect(seasonOf(6, 20, shuffled!.seasons)).toBe("summer");
+    });
   });
 });
 
