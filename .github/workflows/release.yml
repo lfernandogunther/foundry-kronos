@@ -1,0 +1,42 @@
+name: Release
+
+# Tagging is the trigger, because the tag is what the `download` URL in the manifest names.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: npm
+
+      - run: npm ci
+
+      # Publishing a broken module is worse than publishing nothing: Foundry caches the manifest,
+      # and anyone who installed in between keeps the broken copy.
+      - run: npm run check
+
+      - run: npm run release
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+
+      # module.json is attached alongside the zip because the manifest URL resolves to it directly.
+      - name: Attach the manifest and archive to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" --clobber dist/*.zip dist/*/module.json
+          else
+            gh release create "$TAG" --title "$TAG" --generate-notes dist/*.zip dist/*/module.json
+          fi

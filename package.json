@@ -8,6 +8,7 @@
     "build": "vite build && node tools/package.mjs",
     "dev": "vite build --watch",
     "install:foundry": "npm run build && node tools/install.mjs",
+    "release": "npm run build && node tools/release.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

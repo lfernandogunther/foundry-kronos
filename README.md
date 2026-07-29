@@ -11,6 +11,20 @@ Players see the readout. Everything right of the separator is GM-only.
 
 ## Installing
 
+In Foundry: *Add-on Modules* → *Install Module*, and paste this into **Manifest URL**:
+
+```
+https://github.com/lfernandogunther/foundry-kronos/releases/latest/download/module.json
+```
+
+That is the normal way to install it, on any machine, with no checkout and no build. Foundry re-reads
+that URL to spot new versions, so *Manage Modules* offers updates from then on.
+
+It resolves to whatever the newest release is. There is nothing there until the first tag is pushed —
+see [Releasing](#releasing).
+
+## Installing from a checkout
+
 The build produces a self-contained module folder at `dist/foundry-kronos/` — `module.json`
 beside `scripts/`, `styles/`, `lang/` and `data/`, and nothing else. That folder is what Foundry
 installs; sources, tests and `node_modules` stay out of it.
@@ -38,6 +52,28 @@ To install by hand instead — onto another machine, or a server you only have f
 While working on it, `npm run dev` rebuilds the script on save. Note it does **not** re-copy the
 static files or re-install; run `npm run install:foundry` after changing `module.json`, `lang/`,
 `styles/` or `data/`.
+
+For your own machine this is the better loop — no tagging, no waiting on CI. The manifest URL is for
+everyone else, and for update prompts.
+
+## Releasing
+
+A release is what the manifest URL points at. Pushing a tag builds, checks, zips and publishes one:
+
+```bash
+npm version 0.2.0 --no-git-tag-version   # package.json
+# then set the same version in module.json, and the version in its `download` URL
+git commit -am "chore: release 0.2.0"
+git tag v0.2.0
+git push origin main --tags
+```
+
+Three places carry the version and all three must agree — the tests fail if they do not, and the
+release step refuses a tag that disagrees with the manifest. That is deliberate: a manifest whose
+`download` still names the previous tag publishes a release that installs the previous code.
+
+`npm run release` builds the same `dist/foundry-kronos.zip` locally if you want to look inside it
+before tagging. `module.json` sits at the archive root, which is where Foundry looks for it.
 
 ## Modules that conflict
 
