@@ -1,11 +1,13 @@
 import { getCalendarBar, refreshCalendarBar } from "./apps/calendar-bar.js";
-import { injectSceneWeatherOptOut } from "./apps/scene-config.js";
+import { injectSceneFields } from "./apps/scene-config.js";
+import { warnAboutDarknessConflicts } from "./scene/conflicts.js";
+import { applySceneDarkness, isDarknessControlled } from "./scene/darkness.js";
 import { MODULE_ID, REQUIRED_SYSTEM } from "./constants.js";
 import { getCalendarFile, getWeatherEffectMap, isWeatherEnabled, registerSettings, setWeatherEffectMap } from "./settings.js";
 import { labelsFromSystem, loadCalendarLabels, setCalendarLabels } from "./time/calendar.js";
 import { dateKeyOf, getWorldDate, verifyAgainstSystemClock } from "./time/pf2e-clock.js";
 import { refreshTicker, stopTicker } from "./time/ticker.js";
-import { applySceneWeather, defaultWeatherEffectMap } from "./weather/scene-sync.js";
+import { applySceneWeather, defaultWeatherEffectMap, targetScene } from "./weather/scene-sync.js";
 import { weatherFor } from "./weather/state.js";
 
 /** Tracks day rollovers so scene weather is only re-applied when the weather can actually differ. */
@@ -81,6 +83,9 @@ Hooks.once("ready", () => {
 Hooks.on("updateWorldTime", () => {
   refreshCalendarBar();
   void syncSceneWeatherIfDayChanged();
+  // Every time change, not only day rollovers: darkness moves through dawn and dusk. The write
+  // itself is skipped unless the level has actually shifted.
+  void applySceneDarkness();
 });
 
 // The ticker's conditions live outside our own settings, so every event that can change them has
@@ -101,11 +106,17 @@ for (const hook of ["createCombat", "deleteCombat", "updateCombat"]) {
 }
 
 Hooks.on("renderSceneConfig", (app: unknown, rendered: unknown) => {
-  injectSceneWeatherOptOut(app, rendered);
+  injectSceneFields(app, rendered);
 });
 
 Hooks.on("canvasReady", () => {
   void (async (): Promise<void> => {
+    const scene = targetScene();
+    if (scene && isDarknessControlled(scene)) warnAboutDarknessConflicts(scene);
+
+    // A scene entered at night should already be dark, not darken a tick later.
+    await applySceneDarkness();
+
     if (!isWeatherEnabled()) return;
     await applySceneWeather(weatherFor(getWorldDate()).condition);
   })();

@@ -60,6 +60,7 @@ declare const game: {
   } | null;
   paused: boolean;
   combats?: { active?: { started: boolean } | null };
+  modules?: { get?(id: string): { active?: boolean } | undefined };
   i18n: {
     localize(key: string): string;
     format(key: string, data: Record<string, unknown>): string;

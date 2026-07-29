@@ -65,5 +65,16 @@
   "KRONOS.Mapping.Save": "Save",
   "KRONOS.Scene.OptOut.Name": "Ignore calendar weather",
   "KRONOS.Scene.OptOut.Hint": "Keeps the calendar from setting this scene's weather. Use for interiors and anywhere underground.",
-  "KRONOS.Override.NotApplied": "Weather saved, but the scene effect did not change: {reason}."
+  "KRONOS.Override.NotApplied": "Weather saved, but the scene effect did not change: {reason}.",
+  "KRONOS.Settings.DarknessNight.Name": "Night darkness",
+  "KRONOS.Settings.DarknessNight.Hint": "How dark a controlled scene gets at night. 1 is fully dark.",
+  "KRONOS.Settings.DarknessDay.Name": "Day darkness",
+  "KRONOS.Settings.DarknessDay.Hint": "How dark a controlled scene stays at midday. 0 is full daylight; raise it for a permanently gloomy world.",
+  "KRONOS.Settings.Twilight.Name": "Twilight length",
+  "KRONOS.Settings.Twilight.Hint": "Minutes the light takes to change, centred on sunrise and sunset. Longer is gentler.",
+  "KRONOS.Scene.Darkness.Name": "Darkness follows the clock",
+  "KRONOS.Scene.Darkness.Hint": "Sets this scene's darkness level from the time of day, using the seasonal sunrise and sunset. Leave off for interiors and anywhere underground.",
+  "KRONOS.Conflict.Pf2eSyncDarkness": "the Pathfinder 2e World Clock's own darkness sync",
+  "KRONOS.Conflict.SmallTime": "SmallTime's darkness control",
+  "KRONOS.Conflict.Warning": "Kronos is controlling this scene's darkness, but so is {others}. Turn one of them off — otherwise they will overwrite each other."
 }

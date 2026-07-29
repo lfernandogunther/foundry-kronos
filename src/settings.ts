@@ -1,5 +1,7 @@
 import { WeatherMappingApp } from "./apps/weather-mapping.js";
 import { MODULE_ID } from "./constants.js";
+import type { DarknessProfile } from "./scene/darkness-curve.js";
+import { DEFAULT_PROFILE } from "./scene/darkness-curve.js";
 import type { StepUnit } from "./time/units.js";
 import { isStepUnit } from "./time/units.js";
 import type { ClimateProfile, WeatherCondition } from "./weather/generator.js";
@@ -16,6 +18,9 @@ export const SETTINGS = {
   clockTickSeconds: "clockTickSeconds",
   pauseOnCombat: "pauseOnCombat",
   sceneWeatherSync: "sceneWeatherSync",
+  darknessNight: "darknessNight",
+  darknessDay: "darknessDay",
+  twilightMinutes: "twilightMinutes",
   weatherEffectMap: "weatherEffectMap",
   calendarFile: "calendarFile",
   barPosition: "barPosition",
@@ -118,6 +123,36 @@ export function registerSettings(onBarRefresh: () => void, onClockRefresh: () =>
     onChange: onBarRefresh,
   });
 
+  register(SETTINGS.darknessNight, {
+    name: t("KRONOS.Settings.DarknessNight.Name"),
+    hint: t("KRONOS.Settings.DarknessNight.Hint"),
+    scope: "world",
+    config: true,
+    type: Number,
+    default: 1,
+    range: { min: 0, max: 1, step: 0.05 },
+  });
+
+  register(SETTINGS.darknessDay, {
+    name: t("KRONOS.Settings.DarknessDay.Name"),
+    hint: t("KRONOS.Settings.DarknessDay.Hint"),
+    scope: "world",
+    config: true,
+    type: Number,
+    default: 0,
+    range: { min: 0, max: 1, step: 0.05 },
+  });
+
+  register(SETTINGS.twilightMinutes, {
+    name: t("KRONOS.Settings.Twilight.Name"),
+    hint: t("KRONOS.Settings.Twilight.Hint"),
+    scope: "world",
+    config: true,
+    type: Number,
+    default: 90,
+    range: { min: 10, max: 240, step: 10 },
+  });
+
   register(SETTINGS.calendarFile, {
     name: t("KRONOS.Settings.CalendarFile.Name"),
     hint: t("KRONOS.Settings.CalendarFile.Hint"),
@@ -173,6 +208,16 @@ export const shouldPauseOnCombat = (): boolean => readBoolean(SETTINGS.pauseOnCo
 export const isClockRunning = (): boolean => readBoolean(SETTINGS.clockRunning, false);
 export const isSceneWeatherSyncEnabled = (): boolean => readBoolean(SETTINGS.sceneWeatherSync, true);
 export const getCalendarFile = (): string => (typeof read(SETTINGS.calendarFile) === "string" ? (read(SETTINGS.calendarFile) as string) : "");
+
+export function getDarknessProfile(): DarknessProfile {
+  const night = readNumber(SETTINGS.darknessNight, DEFAULT_PROFILE.night);
+  const day = readNumber(SETTINGS.darknessDay, DEFAULT_PROFILE.day);
+  return {
+    night,
+    day,
+    twilightMinutes: readNumber(SETTINGS.twilightMinutes, DEFAULT_PROFILE.twilightMinutes),
+  };
+}
 
 export function getClimate(): ClimateProfile {
   const value = read(SETTINGS.climate);

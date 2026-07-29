@@ -56,10 +56,6 @@
   cursor: pointer;
 }
 
-#foundry-kronos .kronos-clickable:hover {
-  color: #ffd89b;
-}
-
 #foundry-kronos .kronos-separator {
   width: 1px;
   height: 1.4rem;
@@ -83,9 +79,8 @@
   cursor: pointer;
 }
 
-#foundry-kronos .kronos-button:hover {
-  background: rgb(255 255 255 / 14%);
-}
+/* No hover state on the controls by request — the bar sits over the canvas and the highlight
+   read as a distraction. `cursor: pointer` still marks them as interactive. */
 
 #foundry-kronos .kronos-button.kronos-active {
   color: #8fe08f;
