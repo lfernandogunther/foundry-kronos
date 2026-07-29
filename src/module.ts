@@ -4,7 +4,7 @@ import { warnAboutDarknessConflicts } from "./scene/conflicts.js";
 import { applySceneDarkness, isDarknessControlled } from "./scene/darkness.js";
 import { MODULE_ID, REQUIRED_SYSTEM } from "./constants.js";
 import { getCalendarFile, getWeatherEffectMap, isWeatherEnabled, registerSettings, setWeatherEffectMap } from "./settings.js";
-import { labelsFromSystem, loadCalendarLabels, setCalendarLabels } from "./time/calendar.js";
+import { calendarFromSystem, loadCalendar, setCalendar } from "./time/calendar.js";
 import { dateKeyOf, getWorldDate, verifyAgainstSystemClock } from "./time/pf2e-clock.js";
 import { refreshTicker, stopTicker } from "./time/ticker.js";
 import { applySceneWeather, defaultWeatherEffectMap, targetScene } from "./weather/scene-sync.js";
@@ -27,15 +27,15 @@ async function syncSceneWeatherIfDayChanged(): Promise<void> {
   await applySceneWeather(weatherFor(date).condition);
 }
 
-async function resolveCalendarLabels(): Promise<void> {
-  const fromSystem = labelsFromSystem();
-  if (fromSystem) setCalendarLabels(fromSystem);
+async function resolveCalendar(): Promise<void> {
+  const fromSystem = calendarFromSystem();
+  if (fromSystem) setCalendar(fromSystem);
 
   const custom = getCalendarFile();
   if (!custom) return;
 
-  const loaded = await loadCalendarLabels(custom);
-  if (loaded) setCalendarLabels(loaded);
+  const loaded = await loadCalendar(custom);
+  if (loaded) setCalendar(loaded);
 }
 
 /**
@@ -66,7 +66,7 @@ Hooks.once("ready", () => {
       return;
     }
 
-    await resolveCalendarLabels();
+    await resolveCalendar();
 
     const agreement = verifyAgainstSystemClock();
     console.log(`${MODULE_ID} | ${agreement.detail}`);

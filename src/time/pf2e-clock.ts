@@ -1,5 +1,5 @@
 import { MODULE_ID } from "../constants.js";
-import { getCalendarLabels, type CalendarLabels } from "./calendar.js";
+import { type CalendarDefinition, getCalendar } from "./calendar.js";
 import { dayOfYear } from "./gregorian.js";
 
 /**
@@ -90,7 +90,7 @@ export function utcMsToWorldTime(utcMs: number): number {
   return Math.round((utcMs - getWorldCreatedOnMs()) / MS_PER_SECOND);
 }
 
-export function describeUtcMs(utcMs: number, labels: CalendarLabels, worldTime: number): WorldDate {
+export function describeUtcMs(utcMs: number, labels: CalendarDefinition, worldTime: number): WorldDate {
   const d = new Date(utcMs);
   const gregorianYear = d.getUTCFullYear();
   const month = d.getUTCMonth() + 1;
@@ -117,7 +117,7 @@ export function describeUtcMs(utcMs: number, labels: CalendarLabels, worldTime: 
 }
 
 export function getWorldDate(worldTime: number = game.time.worldTime): WorldDate {
-  return describeUtcMs(worldTimeToUtcMs(worldTime), getCalendarLabels(), worldTime);
+  return describeUtcMs(worldTimeToUtcMs(worldTime), getCalendar(), worldTime);
 }
 
 /** Stable key for "which in-world day is it", used to decide when weather should be regenerated. */
