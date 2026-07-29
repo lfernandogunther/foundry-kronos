@@ -50,10 +50,25 @@ export interface WorldDate {
   monthName: string;
   weekdayName: string;
   era: string;
-  /** The active calendar's name, so keys derived from a date cannot collide across calendars. */
-  calendarName: string;
+  /**
+   * Stable identifier for "which in-world day is it", used to decide when weather should be
+   * regenerated and to pin a GM's override to a day. The weather is seeded from it, so the same day
+   * must always produce the same string.
+   *
+   * A calendar with months of its own names itself in it, because its year, month and day mean
+   * something different from anyone else's — two such calendars would otherwise hand each other
+   * their days. Calendars on the Gregorian timeline deliberately do not: they all agree on which day
+   * an instant is, so they agree on its weather, and a world that has been running keeps the weather
+   * it has been having.
+   */
+  dayKey: string;
   /** Named only on the days that carry one. */
   festival: string | null;
+}
+
+function dayKeyFor(namespace: string, year: number, month: number, day: number): string {
+  const stamp = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  return namespace ? `${namespace}:${stamp}` : stamp;
 }
 
 function festivalOn(calendar: CalendarDefinition, month: number, day: number): string | null {
@@ -104,7 +119,9 @@ export function describeGregorian(utcMs: number, calendar: CalendarDefinition, w
     season: seasonOf(month, day, calendar.seasons),
     ...named(calendar, month, weekdayIndex),
     era: calendar.era,
-    calendarName: calendar.name,
+    // The underlying Gregorian year, not the displayed one: renaming months or shifting the era does
+    // not change which day it is, so every calendar on this timeline shares the key.
+    dayKey: dayKeyFor("", gregorianYear, month, day),
     festival: festivalOn(calendar, month, day),
   };
 }
@@ -128,7 +145,7 @@ function describeFixed(reckoning: Reckoning, calendar: CalendarDefinition, world
     season: seasonOf(date.month, date.day, calendar.seasons),
     ...named(calendar, date.month, date.weekdayIndex),
     era: calendar.era,
-    calendarName: calendar.name,
+    dayKey: dayKeyFor(calendar.name, date.year, date.month, date.day),
     festival: festivalOn(calendar, date.month, date.day),
   };
 }
@@ -192,19 +209,6 @@ export function getWorldDate(worldTime: number = game.time.worldTime): WorldDate
     return describeGregorian(worldTimeToUtcMs(worldTime), calendar, worldTime);
   }
   return describeFixed(reckoningFor(calendar), calendar, worldTime);
-}
-
-/**
- * Stable key for "which in-world day is it", used to decide when weather should be regenerated and
- * to pin a GM's override to a day.
- *
- * The calendar's name leads because two calendars label the same instant differently: without it,
- * one calendar's day would inherit the weather a GM set on another's.
- */
-export function dateKeyOf(date: WorldDate): string {
-  const mm = String(date.month).padStart(2, "0");
-  const dd = String(date.day).padStart(2, "0");
-  return `${date.calendarName}:${date.year}-${mm}-${dd}`;
 }
 
 /** The world time this in-world day began at. */

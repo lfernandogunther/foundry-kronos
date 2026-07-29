@@ -1,13 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import { BUNDLED_CALENDAR, type CalendarDefinition, parseCalendar, setCalendar } from "../../src/time/calendar.js";
-import {
-  dateKeyOf,
-  describeGregorian,
-  getWorldDate,
-  secondsUntilTimeOfDay,
-  startOfDayWorldTime,
-} from "../../src/time/clock.js";
+import { describeGregorian, getWorldDate, secondsUntilTimeOfDay, startOfDayWorldTime } from "../../src/time/clock.js";
 
 /** The test world was created at the Unix epoch, so a world time is seconds since 1970. */
 const at = (y: number, m: number, d: number, h = 0, min = 0): number => Date.UTC(y, m - 1, d, h, min) / 1000;
@@ -67,9 +61,9 @@ describe("describeGregorian", () => {
   });
 });
 
-describe("dateKeyOf", () => {
+describe("the day key over the Gregorian structure", () => {
   const keyAt = (utcMs: number, calendar = BUNDLED_CALENDAR): string =>
-    dateKeyOf(describeGregorian(utcMs, calendar, 0));
+    describeGregorian(utcMs, calendar, 0).dayKey;
 
   it("is stable across times within the same day", () => {
     expect(keyAt(Date.UTC(2025, 11, 8, 0, 1))).toBe(keyAt(Date.UTC(2025, 11, 8, 23, 59)));
@@ -79,15 +73,22 @@ describe("dateKeyOf", () => {
     expect(keyAt(Date.UTC(2025, 11, 8, 23, 59))).not.toBe(keyAt(Date.UTC(2025, 11, 9, 0, 0)));
   });
 
-  it("pads the month and day so it stays sortable", () => {
-    expect(keyAt(Date.UTC(2025, 0, 5))).toBe("Golarion — Absalom Reckoning:4725-01-05");
+  // The weather is seeded from this string, so changing its shape rerolls every day of a world that
+  // has been running. It is the underlying Gregorian year, padded, and unprefixed.
+  it("keeps the shape a running world has been generating weather from", () => {
+    expect(keyAt(Date.UTC(2025, 0, 5))).toBe("2025-01-05");
+    expect(keyAt(Date.UTC(2025, 11, 8))).toBe("2025-12-08");
   });
 
-  // Two calendars label the same instant differently; without the name in the key, a GM's override
-  // on one calendar's day would surface on the other's.
-  it("cannot collide across calendars that agree on the numbers", () => {
-    const twin = { ...BUNDLED_CALENDAR, name: "A different reckoning" };
-    expect(keyAt(Date.UTC(2025, 0, 5))).not.toBe(keyAt(Date.UTC(2025, 0, 5), twin));
+  it("does not change when the era or the month names do", () => {
+    const renamed = {
+      ...BUNDLED_CALENDAR,
+      name: "A different reckoning",
+      era: "IC",
+      yearOffset: 0,
+      months: BUNDLED_CALENDAR.months.map((_, index) => `Month${index + 1}`),
+    };
+    expect(keyAt(Date.UTC(2025, 0, 5), renamed)).toBe(keyAt(Date.UTC(2025, 0, 5)));
   });
 });
 

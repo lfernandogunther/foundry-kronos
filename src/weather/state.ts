@@ -1,5 +1,5 @@
 import { getClimate, getWeatherOverride, setWeatherOverride } from "../settings.js";
-import { dateKeyOf, type WorldDate } from "../time/clock.js";
+import { type WorldDate } from "../time/clock.js";
 import { summerness } from "../time/season.js";
 import { type DailyWeather, generateDailyWeather } from "./generator.js";
 
@@ -12,7 +12,7 @@ import { type DailyWeather, generateDailyWeather } from "./generator.js";
  * information the others cannot derive.
  */
 export function weatherFor(date: WorldDate): DailyWeather {
-  const key = dateKeyOf(date);
+  const key = date.dayKey;
 
   const override = getWeatherOverride();
   if (override && override.dateKey === key) {
@@ -29,11 +29,11 @@ export function weatherFor(date: WorldDate): DailyWeather {
 
 export function isOverridden(date: WorldDate): boolean {
   const override = getWeatherOverride();
-  return override !== null && override.dateKey === dateKeyOf(date);
+  return override !== null && override.dateKey === date.dayKey;
 }
 
 export const overrideWeather = (date: WorldDate, weather: DailyWeather): Promise<unknown> =>
-  setWeatherOverride({ dateKey: dateKeyOf(date), ...weather });
+  setWeatherOverride({ dateKey: date.dayKey, ...weather });
 
 /** Drops the override so the day falls back to its generated weather. */
 export const clearOverride = (): Promise<unknown> => setWeatherOverride(null);

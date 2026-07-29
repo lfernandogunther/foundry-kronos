@@ -146,7 +146,8 @@ Gregorian plus 2700 and the month and day are identical, so `14 Gozran 4725 AR` 
 12. With a custom calendar active, the module does **not** warn about disagreeing with the system
     World Clock — the disagreement is the point — and says once, clearly, that the two will differ.
 13. A calendar file that is malformed leaves the previous calendar in force and logs why.
-14. Existing worlds that never touch the setting are unaffected.
+14. Existing worlds that never touch the setting are unaffected — including the weather they
+    generate, which is seeded from the day key and must keep the key it had.
 
 ## Edge cases
 
@@ -169,10 +170,15 @@ Gregorian plus 2700 and the month and day are identical, so `14 Gozran 4725 AR` 
   truncate, or dates before the epoch land a day off and the weekday cycle inverts.
 - **Switching calendars in a live world.** `worldTime` is never rewritten, so nothing is lost — the
   same instant is simply labelled differently. It must not throw, and the bar must re-render.
-- **Weather override keys.** `dateKeyOf` currently builds its key from the Gregorian year. Two
-  calendars would produce colliding keys for different days, so the key gains the calendar's name.
-  An override written under the old key stops matching and is ignored, which is the benign failure:
-  overrides only ever apply to one day.
+- **The day key is a weather seed, not just an identifier.** `generateDailyWeather` hashes it, so its
+  *shape* is load-bearing: prefixing every key with the calendar's name would have rerolled the
+  weather of every day in every existing Golarion world, not merely orphaned the one override a GM had
+  saved. That is a bigger change than this round is entitled to make, and it was very nearly shipped.
+
+  So only calendars with months of their own name themselves in the key. Every calendar on the
+  Gregorian timeline keeps the exact key it produced before — the underlying Gregorian year, padded,
+  unprefixed — because they all agree on which day an instant is and should therefore agree on its
+  weather. Renaming Golarion's months or changing its era does not disturb it either.
 - **Weather and darkness read `dayOfYear` and days-in-year.** Both come from the active calendar
   now. A calendar whose year is not 365 days long must still produce a sane summer/winter curve.
 - **A legacy calendar file.** The README tells users to copy `golarion-ar.json`, whose `months` is

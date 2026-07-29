@@ -10,7 +10,7 @@ import {
   parseCalendar,
   setCalendar,
 } from "../../src/time/calendar.js";
-import { dateKeyOf, getWorldDate, secondsUntilTimeOfDay } from "../../src/time/clock.js";
+import { getWorldDate, secondsUntilTimeOfDay } from "../../src/time/clock.js";
 import { dayOfYearOf } from "../../src/time/reckoning.js";
 import { seasonOf } from "../../src/time/season.js";
 import { daylightMinutes, solarEvents } from "../../src/time/sun.js";
@@ -248,11 +248,11 @@ describe("Tarlan in force", () => {
 
   it("keys its weather under its own name, so no override leaks between calendars", () => {
     setCalendar(shipped);
-    const tarlanKey = dateKeyOf(getWorldDate(on(1, 1)));
+    const tarlanKey = getWorldDate(on(1, 1)).dayKey;
     expect(tarlanKey).toBe("Tarlan:1000-01-01");
 
     setCalendar(BUNDLED_CALENDAR);
-    expect(dateKeyOf(getWorldDate(on(1, 1)))).not.toBe(tarlanKey);
+    expect(getWorldDate(on(1, 1)).dayKey).toBe("2025-01-01");
   });
 });
 

@@ -13,7 +13,7 @@ import {
   loadCalendar,
   setCalendar,
 } from "./time/calendar.js";
-import { dateKeyOf, getWorldDate } from "./time/clock.js";
+import { getWorldDate } from "./time/clock.js";
 import { verifyAgainstSystemClock } from "./time/pf2e-clock.js";
 import { refreshTicker, stopTicker } from "./time/ticker.js";
 import { applySceneWeather, defaultWeatherEffectMap, targetScene } from "./weather/scene-sync.js";
@@ -29,7 +29,7 @@ function isActiveGM(): boolean {
 async function syncSceneWeatherIfDayChanged(): Promise<void> {
   if (!isWeatherEnabled()) return;
   const date = getWorldDate();
-  const key = dateKeyOf(date);
+  const key = date.dayKey;
   if (key === lastDateKey) return;
 
   lastDateKey = key;
@@ -115,7 +115,7 @@ Hooks.once("ready", () => {
 
     await seedWeatherEffectMap();
 
-    lastDateKey = dateKeyOf(getWorldDate());
+    lastDateKey = getWorldDate().dayKey;
     await getCalendarBar().render(true);
     refreshTicker();
     await applySceneWeather(weatherFor(getWorldDate()).condition);
