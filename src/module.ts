@@ -3,8 +3,8 @@ import { injectSceneFields } from "./apps/scene-config.js";
 import { warnAboutDarknessConflicts } from "./scene/conflicts.js";
 import { applySceneDarkness, isDarknessControlled } from "./scene/darkness.js";
 import { MODULE_ID, REQUIRED_SYSTEM } from "./constants.js";
-import { getCalendarFile, getWeatherEffectMap, isWeatherEnabled, registerSettings, setWeatherEffectMap } from "./settings.js";
-import { calendarFromSystem, loadCalendar, setCalendar } from "./time/calendar.js";
+import { getCalendarFile, getCalendarId, getWeatherEffectMap, isWeatherEnabled, registerSettings, setWeatherEffectMap } from "./settings.js";
+import { bundledCalendar, calendarFromSystem, DEFAULT_CALENDAR_ID, loadCalendar, setCalendar } from "./time/calendar.js";
 import { dateKeyOf, getWorldDate } from "./time/clock.js";
 import { verifyAgainstSystemClock } from "./time/pf2e-clock.js";
 import { refreshTicker, stopTicker } from "./time/ticker.js";
@@ -28,9 +28,20 @@ async function syncSceneWeatherIfDayChanged(): Promise<void> {
   await applySceneWeather(weatherFor(date).condition);
 }
 
+/**
+ * Settles which calendar is in force, most general choice first: the bundled one the GM picked, then
+ * the live system names where those are what was picked, then a file if one is configured.
+ */
 async function resolveCalendar(): Promise<void> {
-  const fromSystem = calendarFromSystem();
-  if (fromSystem) setCalendar(fromSystem);
+  const id = getCalendarId();
+  setCalendar(bundledCalendar(id));
+
+  // The system's names describe its own Gregorian clock. Letting them through while a calendar of
+  // its own is selected would rename Tarlan's months to Golarion's.
+  if (id === DEFAULT_CALENDAR_ID) {
+    const fromSystem = calendarFromSystem();
+    if (fromSystem) setCalendar(fromSystem);
+  }
 
   const custom = getCalendarFile();
   if (!custom) return;

@@ -1,5 +1,6 @@
 import { WeatherMappingApp } from "./apps/weather-mapping.js";
 import { MODULE_ID } from "./constants.js";
+import { BUNDLED_CALENDARS, DEFAULT_CALENDAR_ID } from "./time/calendar.js";
 import type { DarknessProfile } from "./scene/darkness-curve.js";
 import { DEFAULT_PROFILE } from "./scene/darkness-curve.js";
 import type { StepUnit } from "./time/units.js";
@@ -22,6 +23,7 @@ export const SETTINGS = {
   darknessDay: "darknessDay",
   twilightMinutes: "twilightMinutes",
   weatherEffectMap: "weatherEffectMap",
+  calendar: "calendar",
   calendarFile: "calendarFile",
   barPosition: "barPosition",
   stepUnit: "stepUnit",
@@ -153,6 +155,18 @@ export function registerSettings(onBarRefresh: () => void, onClockRefresh: () =>
     range: { min: 10, max: 240, step: 10 },
   });
 
+  register(SETTINGS.calendar, {
+    name: t("KRONOS.Settings.Calendar.Name"),
+    hint: t("KRONOS.Settings.Calendar.Hint"),
+    scope: "world",
+    config: true,
+    type: String,
+    default: DEFAULT_CALENDAR_ID,
+    // Labelled from each calendar's own name, so adding a bundled calendar needs no new string.
+    choices: Object.fromEntries(Object.entries(BUNDLED_CALENDARS).map(([id, calendar]) => [id, calendar.name])),
+    requiresReload: true,
+  });
+
   register(SETTINGS.calendarFile, {
     name: t("KRONOS.Settings.CalendarFile.Name"),
     hint: t("KRONOS.Settings.CalendarFile.Hint"),
@@ -208,6 +222,11 @@ export const shouldPauseOnCombat = (): boolean => readBoolean(SETTINGS.pauseOnCo
 export const isClockRunning = (): boolean => readBoolean(SETTINGS.clockRunning, false);
 export const isSceneWeatherSyncEnabled = (): boolean => readBoolean(SETTINGS.sceneWeatherSync, true);
 export const getCalendarFile = (): string => (typeof read(SETTINGS.calendarFile) === "string" ? (read(SETTINGS.calendarFile) as string) : "");
+
+export const getCalendarId = (): string => {
+  const value = read(SETTINGS.calendar);
+  return typeof value === "string" && value.length > 0 ? value : DEFAULT_CALENDAR_ID;
+};
 
 export function getDarknessProfile(): DarknessProfile {
   const night = readNumber(SETTINGS.darknessNight, DEFAULT_PROFILE.night);

@@ -1,4 +1,5 @@
 import bundledGolarion from "../../data/calendars/golarion-ar.json" with { type: "json" };
+import bundledTarlan from "../../data/calendars/tarlan.json" with { type: "json" };
 import { MODULE_ID } from "../constants.js";
 import { DEFAULT_SEASON_BOUNDARIES, isSeason, type SeasonBoundary } from "./season.js";
 
@@ -225,16 +226,37 @@ export function parseCalendar(raw: unknown): CalendarDefinition | null {
 }
 
 /**
- * The bundled Golarion set. A failure here is a broken build rather than bad user input, so it
- * throws instead of degrading — a null would surface much later as an unexplained blank bar.
+ * A failure here is a broken build rather than bad user input, so it throws instead of degrading —
+ * a null would surface much later as an unexplained blank bar.
  */
-function requireBundled(): CalendarDefinition {
-  const parsed = parseCalendar(bundledGolarion);
-  if (!parsed) throw new Error(`${MODULE_ID} | the bundled Golarion calendar is malformed`);
+function requireBundled(raw: unknown, id: string): CalendarDefinition {
+  const parsed = parseCalendar(raw);
+  if (!parsed) throw new Error(`${MODULE_ID} | the bundled "${id}" calendar is malformed`);
   return parsed;
 }
 
-export const BUNDLED_CALENDAR: CalendarDefinition = requireBundled();
+/**
+ * The calendars that ship with the module, keyed by the id the setting stores.
+ *
+ * Imported rather than fetched at runtime. They are small, and bundling them removes the whole class
+ * of failure where a module installed under an unexpected path cannot find its own data.
+ */
+export const BUNDLED_CALENDARS: Readonly<Record<string, CalendarDefinition>> = {
+  "golarion-ar": requireBundled(bundledGolarion, "golarion-ar"),
+  tarlan: requireBundled(bundledTarlan, "tarlan"),
+};
+
+/** The id of the calendar a world gets when it has never chosen one. */
+export const DEFAULT_CALENDAR_ID = "golarion-ar";
+
+export const BUNDLED_CALENDAR: CalendarDefinition = BUNDLED_CALENDARS[DEFAULT_CALENDAR_ID]!;
+
+export function bundledCalendar(id: string): CalendarDefinition {
+  const found = BUNDLED_CALENDARS[id];
+  if (found) return found;
+  console.warn(`${MODULE_ID} | no bundled calendar called "${id}"; falling back to ${DEFAULT_CALENDAR_ID}`);
+  return BUNDLED_CALENDAR;
+}
 
 /**
  * Prefer the live PF2e config so we inherit whatever the installed system says, and fall back to

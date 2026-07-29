@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { BUNDLED_CALENDAR, daysInCalendarYear, hasOwnMonths, parseCalendar } from "../../src/time/calendar.js";
+import {
+  BUNDLED_CALENDAR,
+  BUNDLED_CALENDARS,
+  bundledCalendar,
+  daysInCalendarYear,
+  DEFAULT_CALENDAR_ID,
+  hasOwnMonths,
+  parseCalendar,
+} from "../../src/time/calendar.js";
 
 describe("the bundled Golarion calendar", () => {
   it("carries the Absalom Reckoning offset", () => {
@@ -17,6 +25,30 @@ describe("the bundled Golarion calendar", () => {
   it("inherits the default season boundaries", () => {
     expect(BUNDLED_CALENDAR.seasons).toContainEqual({ month: 3, day: 20, season: "spring" });
     expect(BUNDLED_CALENDAR.seasons).toHaveLength(4);
+  });
+});
+
+describe("the bundled calendars", () => {
+  it("offers both Golarion and Tarlan, each with a name to label it by", () => {
+    expect(Object.keys(BUNDLED_CALENDARS)).toEqual(["golarion-ar", "tarlan"]);
+    for (const [id, calendar] of Object.entries(BUNDLED_CALENDARS)) {
+      expect(calendar.name.length, `${id} needs a name for the settings dropdown`).toBeGreaterThan(0);
+    }
+  });
+
+  it("defaults to Golarion, so a world that never chooses keeps what it had", () => {
+    expect(DEFAULT_CALENDAR_ID).toBe("golarion-ar");
+    expect(bundledCalendar(DEFAULT_CALENDAR_ID)).toBe(BUNDLED_CALENDAR);
+    expect(hasOwnMonths(bundledCalendar(DEFAULT_CALENDAR_ID))).toBe(false);
+  });
+
+  it("resolves Tarlan to a calendar with months of its own", () => {
+    expect(hasOwnMonths(bundledCalendar("tarlan"))).toBe(true);
+    expect(bundledCalendar("tarlan").months[0]).toBe("Enudar");
+  });
+
+  it("falls back to the default rather than leaving the bar with no calendar", () => {
+    expect(bundledCalendar("a calendar that was removed")).toBe(BUNDLED_CALENDAR);
   });
 });
 
