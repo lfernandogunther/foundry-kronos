@@ -130,7 +130,10 @@ declare namespace foundry {
         ): void;
       }
       class DialogV2 {
+        /** Injects a confirmation button of its own alongside any passed in. */
         static prompt(options: Record<string, unknown>): Promise<unknown>;
+        /** Renders exactly the buttons it is given. */
+        static wait(options: Record<string, unknown>): Promise<unknown>;
       }
     }
   }

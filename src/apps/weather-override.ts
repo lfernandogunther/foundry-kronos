@@ -40,7 +40,7 @@ export async function openWeatherOverride(date: WorldDate): Promise<void> {
     </form>`;
 
   const dialog = foundry.applications.api.DialogV2;
-  if (!dialog?.prompt) {
+  if (!dialog?.wait) {
     console.error(`${MODULE_ID} | DialogV2 is unavailable; cannot open the weather override`);
     return;
   }
@@ -84,7 +84,9 @@ export async function openWeatherOverride(date: WorldDate): Promise<void> {
     });
   }
 
-  await dialog.prompt({
+  // `wait` rather than `prompt`: prompt injects a confirmation button of its own, which submits
+  // the dialog without running any of our callbacks — so it silently discards the form.
+  await dialog.wait({
     window: { title: t("PF2ECALENDARBAR.Override.Title") },
     content,
     buttons,
