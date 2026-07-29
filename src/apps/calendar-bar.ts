@@ -75,6 +75,7 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
   };
 
   #dragOffset: { x: number; y: number } | null = null;
+  #listening = false;
 
   protected override async _renderHTML(): Promise<HTMLElement> {
     const date = getWorldDate();
@@ -164,12 +165,21 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
     const element = this.element;
     this.#applyStoredPosition(element);
 
+    // The root element survives a re-render while its contents are replaced, so listeners bound
+    // here would stack up: after ten clock ticks one click would fire ten times. Bind once, and
+    // rely on delegation to reach the newly built controls.
+    if (this.#listening) return;
+    this.#listening = true;
+
     element.addEventListener("click", (event) => void this.#onClick(event));
     element.addEventListener("change", (event) => void this.#onChange(event));
     element.addEventListener("pointerdown", (event) => this.#onPointerDown(event));
   }
 
   #applyStoredPosition(element: HTMLElement): void {
+    // A re-render mid-drag must not yank the bar back to its last saved spot.
+    if (this.#dragOffset) return;
+
     const stored = getBarPosition();
     element.style.position = "fixed";
     if (stored) {
