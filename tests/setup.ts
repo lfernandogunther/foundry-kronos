@@ -35,4 +35,16 @@ Object.assign(globalThis, {
   },
   CONFIG: { weatherEffects: {} },
   ui: { notifications: undefined },
+  game: {
+    /**
+     * A world created at the Unix epoch, so a world time is simply seconds since 1970 and a test can
+     * name an instant with `Date.UTC(...) / 1000`. Every other setting reads as unset, which sends
+     * the module's own accessors to their defaults.
+     */
+    settings: {
+      get: (namespace: string, key: string): unknown =>
+        namespace === "pf2e" && key === "worldClock.worldCreatedOn" ? 0 : undefined,
+    },
+    i18n: { localize: (key: string): string => key },
+  },
 });

@@ -3,21 +3,21 @@
 One commit per item. Tasks 1–3 are one working whole: the build only goes green again at the end of
 3, so they land in quick succession.
 
-- [ ] **1. Calendar definitions** — `CalendarDefinition` in `src/time/calendar.ts`: months as
+- [x] **1. Calendar definitions** — `CalendarDefinition` in `src/time/calendar.ts`: months as
       `{name, days?}`, season boundaries, festivals, epoch. Validation normalises the legacy
       `months: string[]` shape to "Gregorian structure", rejects anything else, and no longer
       hardcodes 12 months / 7 weekdays for custom calendars
-- [ ] **2. Reckoning engine** — `src/time/reckoning.ts`, pure and definition-driven: `worldTime` ↔
+- [x] **2. Reckoning engine** — `src/time/reckoning.ts`, pure and definition-driven: `worldTime` ↔
       year/month/day/weekday/day-of-year, month and year steps, start-of-day. Floor division
       throughout, epoch taken as a resolved `worldTime`. Tests per the plan's list
-- [ ] **3. Route the module through the calendar** — `src/time/clock.ts` facade picking the backend
+- [x] **3. Route the module through the calendar** — `src/time/clock.ts` facade picking the backend
       and resolving `epoch.on` through `worldCreatedOn` (lazily, and warning when that read falls
       back); `getWorldDate` / `dateKeyOf` move there, the key gains the calendar name, and
       `module.ts`, `darkness.ts`, `weather/state.ts` and `calendar-bar.ts` import from it.
       `pf2e-clock.ts` keeps only the PF2e reads
-- [ ] **4. Steps and jumps** — `units.ts`: month and year steps and `secondsUntilTimeOfDay` resolve
-      against the active calendar rather than `addMonthsUtc` and UTC midnight. Tested against a
-      deliberately non-midnight epoch, since Tarlan's own anchor would hide a wrong boundary
+- [x] **4. Steps and jumps** — month and year steps and `secondsUntilTimeOfDay` resolve against the
+      active calendar rather than `addMonthsUtc` and UTC midnight. Landed with task 3: dropping the
+      Gregorian-only `utcMs` from `WorldDate` left the call sites no other option
 - [ ] **5. Seasons from the definition** — boundaries out of the `season.ts` constant and into the
       calendar files; `summerness` takes the calendar's year length. Golarion's current values
       written into its file so its behaviour is unchanged

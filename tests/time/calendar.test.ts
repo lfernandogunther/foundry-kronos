@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { BUNDLED_CALENDAR, parseCalendar } from "../../src/time/calendar.js";
-import { dateKeyOf, describeUtcMs } from "../../src/time/pf2e-clock.js";
+import { BUNDLED_CALENDAR, daysInCalendarYear, hasOwnMonths, parseCalendar } from "../../src/time/calendar.js";
 
 describe("the bundled Golarion calendar", () => {
   it("carries the Absalom Reckoning offset", () => {
@@ -11,6 +10,8 @@ describe("the bundled Golarion calendar", () => {
 
   it("uses the Gregorian structure rather than stating its own month lengths", () => {
     expect(BUNDLED_CALENDAR.monthDays).toBeNull();
+    expect(hasOwnMonths(BUNDLED_CALENDAR)).toBe(false);
+    expect(daysInCalendarYear(BUNDLED_CALENDAR)).toBe(365);
   });
 
   it("inherits the default season boundaries", () => {
@@ -103,59 +104,3 @@ describe("parseCalendar", () => {
   });
 });
 
-describe("describeUtcMs", () => {
-  // 8 December 2025 was a Monday, so this is the mockup's reading in real Golarion terms.
-  const sample = Date.UTC(2025, 11, 8, 11, 15, 0);
-  const date = describeUtcMs(sample, BUNDLED_CALENDAR, 0);
-
-  it("applies the era offset to the displayed year", () => {
-    expect(date.gregorianYear).toBe(2025);
-    expect(date.year).toBe(4725);
-    expect(date.era).toBe("AR");
-  });
-
-  it("names the month from the label set", () => {
-    expect(date.month).toBe(12);
-    expect(date.monthName).toBe("Kuthona");
-    expect(date.day).toBe(8);
-  });
-
-  it("indexes weekdays from the Monday-equivalent", () => {
-    expect(date.weekdayIndex).toBe(0);
-    expect(date.weekdayName).toBe("Moonday");
-  });
-
-  it("reads the time in UTC", () => {
-    expect(date.hour).toBe(11);
-    expect(date.minute).toBe(15);
-  });
-
-  it("maps a Sunday onto the last weekday of the list", () => {
-    // 7 December 2025, the day before the sample.
-    const sunday = describeUtcMs(Date.UTC(2025, 11, 7), BUNDLED_CALENDAR, 0);
-    expect(sunday.weekdayIndex).toBe(6);
-    expect(sunday.weekdayName).toBe("Sunday");
-  });
-});
-
-describe("dateKeyOf", () => {
-  it("is stable across times within the same day", () => {
-    const labels = BUNDLED_CALENDAR;
-    const morning = dateKeyOf(describeUtcMs(Date.UTC(2025, 11, 8, 0, 1), labels, 0));
-    const night = dateKeyOf(describeUtcMs(Date.UTC(2025, 11, 8, 23, 59), labels, 0));
-    expect(morning).toBe(night);
-    expect(morning).toBe("2025-12-08");
-  });
-
-  it("changes across midnight", () => {
-    const labels = BUNDLED_CALENDAR;
-    const before = dateKeyOf(describeUtcMs(Date.UTC(2025, 11, 8, 23, 59), labels, 0));
-    const after = dateKeyOf(describeUtcMs(Date.UTC(2025, 11, 9, 0, 0), labels, 0));
-    expect(before).not.toBe(after);
-  });
-
-  it("uses the underlying year so it stays sortable regardless of era", () => {
-    const key = dateKeyOf(describeUtcMs(Date.UTC(2025, 0, 5), BUNDLED_CALENDAR, 0));
-    expect(key).toBe("2025-01-05");
-  });
-});

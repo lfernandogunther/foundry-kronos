@@ -1,6 +1,6 @@
 import { MODULE_ID } from "../constants.js";
 import { getDarknessProfile, getLatitude } from "../settings.js";
-import { getWorldDate } from "../time/pf2e-clock.js";
+import { getWorldDate } from "../time/clock.js";
 import { targetScene } from "../weather/scene-sync.js";
 import { darknessAt, isWorthWriting } from "./darkness-curve.js";
 

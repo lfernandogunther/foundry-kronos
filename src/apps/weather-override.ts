@@ -1,5 +1,5 @@
 import { MODULE_ID } from "../constants.js";
-import type { WorldDate } from "../time/pf2e-clock.js";
+import type { WorldDate } from "../time/clock.js";
 import { isWeatherCondition, WEATHER_CONDITIONS } from "../weather/generator.js";
 import { clearOverride, isOverridden, overrideWeather, weatherFor } from "../weather/state.js";
 import { applySceneWeather, type SyncOutcome } from "../weather/scene-sync.js";

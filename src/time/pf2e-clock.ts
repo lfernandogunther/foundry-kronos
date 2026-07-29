@@ -1,6 +1,4 @@
 import { MODULE_ID } from "../constants.js";
-import { type CalendarDefinition, getCalendar } from "./calendar.js";
-import { dayOfYear } from "./gregorian.js";
 
 /**
  * The only file that touches PF2e internals.
@@ -16,30 +14,6 @@ import { dayOfYear } from "./gregorian.js";
  */
 
 const MS_PER_SECOND = 1000;
-
-export interface WorldDate {
-  /** The `game.time.worldTime` value this was derived from. */
-  worldTime: number;
-  /** Absolute UTC milliseconds, for arithmetic. */
-  utcMs: number;
-  /** Displayed year, era offset applied. */
-  year: number;
-  /** Underlying Gregorian year, before the offset. */
-  gregorianYear: number;
-  /** 1-12 */
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
-  second: number;
-  /** 0-6, 0 = the Monday-equivalent weekday. */
-  weekdayIndex: number;
-  /** 1-366 */
-  dayOfYear: number;
-  monthName: string;
-  weekdayName: string;
-  era: string;
-}
 
 let warnedMissingCreatedOn = false;
 
@@ -58,18 +32,24 @@ function fallbackCreatedOnMs(): number {
   return 0;
 }
 
-/** Reads PF2e's world creation timestamp, accepting each shape the setting has plausibly taken. */
-export function getWorldCreatedOnMs(): number {
+/**
+ * Reads PF2e's world creation timestamp, accepting each shape the setting has plausibly taken, and
+ * returns null rather than a substitute when there is nothing to read.
+ *
+ * Callers that only need dates to be self-consistent can fall back silently. A caller anchoring a
+ * calendar cannot: substituting an origin there moves every date in the world, so it needs to know.
+ */
+export function readWorldCreatedOnMs(): number | null {
   let raw: unknown;
   try {
     raw = game.settings.get("pf2e", "worldClock.worldCreatedOn");
   } catch {
-    return fallbackCreatedOnMs();
+    return null;
   }
 
   if (typeof raw === "string") {
     const parsed = Date.parse(raw);
-    return Number.isNaN(parsed) ? fallbackCreatedOnMs() : parsed;
+    return Number.isNaN(parsed) ? null : parsed;
   }
   if (typeof raw === "number") return raw;
   if (raw instanceof Date) return raw.getTime();
@@ -78,7 +58,11 @@ export function getWorldCreatedOnMs(): number {
   const asLuxon = raw as { toMillis?: () => number } | null;
   if (asLuxon && typeof asLuxon.toMillis === "function") return asLuxon.toMillis();
 
-  return fallbackCreatedOnMs();
+  return null;
+}
+
+export function getWorldCreatedOnMs(): number {
+  return readWorldCreatedOnMs() ?? fallbackCreatedOnMs();
 }
 
 export function worldTimeToUtcMs(worldTime: number): number {
@@ -88,43 +72,6 @@ export function worldTimeToUtcMs(worldTime: number): number {
 /** Inverse of {@link worldTimeToUtcMs}, for turning a target instant into a `game.time.advance` delta. */
 export function utcMsToWorldTime(utcMs: number): number {
   return Math.round((utcMs - getWorldCreatedOnMs()) / MS_PER_SECOND);
-}
-
-export function describeUtcMs(utcMs: number, labels: CalendarDefinition, worldTime: number): WorldDate {
-  const d = new Date(utcMs);
-  const gregorianYear = d.getUTCFullYear();
-  const month = d.getUTCMonth() + 1;
-
-  // getUTCDay() is 0-based on Sunday; the calendar's weekday list starts on the Monday-equivalent.
-  const weekdayIndex = (d.getUTCDay() + 6) % 7;
-
-  return {
-    worldTime,
-    utcMs,
-    year: gregorianYear + labels.yearOffset,
-    gregorianYear,
-    month,
-    day: d.getUTCDate(),
-    hour: d.getUTCHours(),
-    minute: d.getUTCMinutes(),
-    second: d.getUTCSeconds(),
-    weekdayIndex,
-    dayOfYear: dayOfYear(utcMs),
-    monthName: labels.months[month - 1] ?? String(month),
-    weekdayName: labels.weekdays[weekdayIndex] ?? String(weekdayIndex),
-    era: labels.era,
-  };
-}
-
-export function getWorldDate(worldTime: number = game.time.worldTime): WorldDate {
-  return describeUtcMs(worldTimeToUtcMs(worldTime), getCalendar(), worldTime);
-}
-
-/** Stable key for "which in-world day is it", used to decide when weather should be regenerated. */
-export function dateKeyOf(date: WorldDate): string {
-  const mm = String(date.month).padStart(2, "0");
-  const dd = String(date.day).padStart(2, "0");
-  return `${date.gregorianYear}-${mm}-${dd}`;
 }
 
 /**

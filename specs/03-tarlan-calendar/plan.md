@@ -101,10 +101,12 @@ The full check is `npm run check` (typecheck, tests, build).
 
 ## Risks
 
-- **`secondsUntilTimeOfDay` is the subtle one.** It derives the day boundary from UTC midnight, which
-  Tarlan's anchor happens to agree with — so a wrong implementation here passes every test a GM would
-  think to run, and only breaks for whoever re-anchors the epoch to a non-midnight hour later. Test
-  it against a deliberately shifted epoch, not just Tarlan's.
+- **`secondsUntilTimeOfDay` is the subtle one** — and building it settled the question. Because the
+  anchor takes its time of day *from* the declared instant, a calendar's time of day is always equal
+  to UTC's, so the day boundary is always UTC midnight no matter what `epoch.on` says. No epoch
+  reachable through the file can shift it. The engine still handles a shifted anchor and is tested
+  for one directly, but the facade cannot produce it, so there is no hidden case waiting for whoever
+  re-anchors later.
 - **The manifest/version tests are unrelated but strict.** `tests/manifest.test.ts` fails if the
   three version strings disagree; nothing here should touch them.
 - **Ordering.** Tasks 1–3 must land together to keep the build green, so task 3 is where the

@@ -1,6 +1,5 @@
 import { getClimate, getWeatherOverride, setWeatherOverride } from "../settings.js";
-import { dateKeyOf, type WorldDate } from "../time/pf2e-clock.js";
-import { daysInYear } from "../time/gregorian.js";
+import { dateKeyOf, type WorldDate } from "../time/clock.js";
 import { seasonOf, summerness } from "../time/season.js";
 import { type DailyWeather, generateDailyWeather } from "./generator.js";
 
@@ -23,7 +22,7 @@ export function weatherFor(date: WorldDate): DailyWeather {
   return generateDailyWeather(
     key,
     seasonOf(date.month, date.day),
-    summerness(date.dayOfYear, daysInYear(date.gregorianYear)),
+    summerness(date.dayOfYear, date.daysInYear),
     getClimate(),
   );
 }

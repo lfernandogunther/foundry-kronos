@@ -10,11 +10,11 @@ import {
   setClockRunning,
   setStepUnit,
 } from "../settings.js";
-import { getWorldDate, type WorldDate } from "../time/pf2e-clock.js";
+import { getWorldDate, secondsUntilTimeOfDay, type WorldDate } from "../time/clock.js";
 import { SEASON_ICONS, seasonOf } from "../time/season.js";
 import { solarEvents } from "../time/sun.js";
 import { haltReason } from "../time/ticker.js";
-import { isStepUnit, secondsUntilTimeOfDay, STEP_UNITS, type StepUnit, stepSeconds } from "../time/units.js";
+import { isStepUnit, STEP_UNITS, type StepUnit, stepSeconds } from "../time/units.js";
 import { temperatureAt } from "../weather/generator.js";
 import { weatherFor } from "../weather/state.js";
 import { openWeatherOverride } from "./weather-override.js";
@@ -204,13 +204,13 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
         break;
       case "step": {
         const count = Number(target.dataset["count"] ?? 0);
-        await advance(stepSeconds(getStepUnit(), count, date.utcMs));
+        await advance(stepSeconds(getStepUnit(), count, date.worldTime));
         break;
       }
       case "jump": {
         const jump = target.dataset["target"] as JumpTarget | undefined;
         if (!jump) break;
-        await advance(secondsUntilTimeOfDay(date.utcMs, targetMinutes(jump, date)));
+        await advance(secondsUntilTimeOfDay(date.worldTime, targetMinutes(jump, date)));
         break;
       }
       case "override-weather":
