@@ -1,4 +1,4 @@
-# PF2e Calendar Bar
+# Kronos
 
 A floating toolbar for Foundry VTT v14 showing the in-world season, date, time, weather and
 temperature, with GM controls for moving time. Built for the Pathfinder 2e system.
@@ -11,7 +11,7 @@ Players see the readout. Everything right of the separator is GM-only.
 
 ## Installing
 
-The build produces a self-contained module folder at `dist/pf2e-calendar-bar/` — `module.json`
+The build produces a self-contained module folder at `dist/foundry-kronos/` — `module.json`
 beside `scripts/`, `styles/`, `lang/` and `data/`, and nothing else. That folder is what Foundry
 installs; sources, tests and `node_modules` stay out of it.
 
@@ -30,10 +30,10 @@ FOUNDRY_DATA="$HOME/Library/Application Support/FoundryVTT" npm run install:foun
 It refuses to overwrite a directory that is not a previous install of this module, so a mistyped
 path cannot eat another module.
 
-Restart Foundry, then enable **PF2e Calendar Bar** in *Manage Modules*.
+Restart Foundry, then enable **Kronos** in *Manage Modules*.
 
 To install by hand instead — onto another machine, or a server you only have file access to — run
-`npm run build` and copy `dist/pf2e-calendar-bar/` into `<FOUNDRY_DATA>/Data/modules/`.
+`npm run build` and copy `dist/foundry-kronos/` into `<FOUNDRY_DATA>/Data/modules/`.
 
 While working on it, `npm run dev` rebuilds the script on save. Note it does **not** re-copy the
 static files or re-install; run `npm run install:foundry` after changing `module.json`, `lang/`,

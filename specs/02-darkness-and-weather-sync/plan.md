@@ -10,7 +10,7 @@ src/weather/scene-sync.ts    robust scene resolution, reasoned diagnostics
 src/apps/scene-config.ts     second checkbox for darkness control
 src/settings.ts              night/day levels, twilight length, sync default
 src/module.ts                wire darkness into updateWorldTime and canvasReady
-styles/calendar-bar.css      drop the hover rules
+styles/kronos.css      drop the hover rules
 lang/en.json                 new strings
 ```
 

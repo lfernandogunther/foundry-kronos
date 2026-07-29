@@ -8,7 +8,7 @@ import { SEASON_ICONS } from "../src/time/season.js";
 import { STEP_UNITS } from "../src/time/units.js";
 import { WEATHER_CONDITIONS } from "../src/weather/generator.js";
 
-const PREFIX = "PF2ECALENDARBAR";
+const PREFIX = "KRONOS";
 const known = new Set(Object.keys(en));
 
 function sourceFiles(dir: string): string[] {

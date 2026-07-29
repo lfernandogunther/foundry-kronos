@@ -22,10 +22,16 @@ interface FoundryScene {
   id: string;
   name: string;
   weather: string;
-  update(data: Record<string, unknown>): Promise<FoundryScene>;
+  /** v12+ nests lighting under `environment`; older documents carry `darkness` at the top level. */
+  environment?: { darknessLevel?: number; darknessLock?: boolean };
+  darkness?: number;
+  darknessLevel?: number;
+  update(data: Record<string, unknown>, operation?: Record<string, unknown>): Promise<FoundryScene>;
   getFlag(scope: string, key: string): unknown;
   setFlag(scope: string, key: string, value: unknown): Promise<FoundryScene>;
 }
+
+declare const canvas: { scene?: FoundryScene | null; ready?: boolean } | null;
 
 interface SettingRegistration {
   name?: string;

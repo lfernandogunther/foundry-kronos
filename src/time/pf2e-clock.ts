@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../constants.js";
 import { getCalendarLabels, type CalendarLabels } from "./calendar.js";
 import { dayOfYear } from "./gregorian.js";
 
@@ -51,7 +52,7 @@ function fallbackCreatedOnMs(): number {
   if (!warnedMissingCreatedOn) {
     warnedMissingCreatedOn = true;
     console.warn(
-      "pf2e-calendar-bar | could not read the PF2e world creation date; dates will not match the system World Clock",
+      `${MODULE_ID} | could not read the PF2e world creation date; dates will not match the system World Clock`,
     );
   }
   return 0;
@@ -147,6 +148,6 @@ export function verifyAgainstSystemClock(): { agrees: boolean; detail: string } 
   if (driftSeconds < 1) return { agrees: true, detail: "matches the system World Clock" };
 
   const detail = `disagrees with the system World Clock by ${Math.round(driftSeconds)}s (ours ${new Date(ours).toISOString()}, system ${new Date(theirs).toISOString()})`;
-  console.warn(`pf2e-calendar-bar | ${detail}`);
+  console.warn(`${MODULE_ID} | ${detail}`);
   return { agrees: false, detail };
 }

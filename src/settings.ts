@@ -42,8 +42,8 @@ export function registerSettings(onBarRefresh: () => void, onClockRefresh: () =>
     game.settings.register(MODULE_ID, key, data);
 
   register(SETTINGS.latitude, {
-    name: t("PF2ECALENDARBAR.Settings.Latitude.Name"),
-    hint: t("PF2ECALENDARBAR.Settings.Latitude.Hint"),
+    name: t("KRONOS.Settings.Latitude.Name"),
+    hint: t("KRONOS.Settings.Latitude.Hint"),
     scope: "world",
     config: true,
     type: Number,
@@ -53,8 +53,8 @@ export function registerSettings(onBarRefresh: () => void, onClockRefresh: () =>
   });
 
   register(SETTINGS.stepMultiplier, {
-    name: t("PF2ECALENDARBAR.Settings.StepMultiplier.Name"),
-    hint: t("PF2ECALENDARBAR.Settings.StepMultiplier.Hint"),
+    name: t("KRONOS.Settings.StepMultiplier.Name"),
+    hint: t("KRONOS.Settings.StepMultiplier.Hint"),
     scope: "world",
     config: true,
     type: Number,
@@ -64,8 +64,8 @@ export function registerSettings(onBarRefresh: () => void, onClockRefresh: () =>
   });
 
   register(SETTINGS.weatherEnabled, {
-    name: t("PF2ECALENDARBAR.Settings.WeatherEnabled.Name"),
-    hint: t("PF2ECALENDARBAR.Settings.WeatherEnabled.Hint"),
+    name: t("KRONOS.Settings.WeatherEnabled.Name"),
+    hint: t("KRONOS.Settings.WeatherEnabled.Hint"),
     scope: "world",
     config: true,
     type: Boolean,
@@ -74,8 +74,8 @@ export function registerSettings(onBarRefresh: () => void, onClockRefresh: () =>
   });
 
   register(SETTINGS.clockRatio, {
-    name: t("PF2ECALENDARBAR.Settings.ClockRatio.Name"),
-    hint: t("PF2ECALENDARBAR.Settings.ClockRatio.Hint"),
+    name: t("KRONOS.Settings.ClockRatio.Name"),
+    hint: t("KRONOS.Settings.ClockRatio.Hint"),
     scope: "world",
     config: true,
     type: Number,
@@ -85,8 +85,8 @@ export function registerSettings(onBarRefresh: () => void, onClockRefresh: () =>
   });
 
   register(SETTINGS.clockTickSeconds, {
-    name: t("PF2ECALENDARBAR.Settings.ClockTick.Name"),
-    hint: t("PF2ECALENDARBAR.Settings.ClockTick.Hint"),
+    name: t("KRONOS.Settings.ClockTick.Name"),
+    hint: t("KRONOS.Settings.ClockTick.Hint"),
     scope: "world",
     config: true,
     type: Number,
@@ -96,8 +96,8 @@ export function registerSettings(onBarRefresh: () => void, onClockRefresh: () =>
   });
 
   register(SETTINGS.pauseOnCombat, {
-    name: t("PF2ECALENDARBAR.Settings.PauseOnCombat.Name"),
-    hint: t("PF2ECALENDARBAR.Settings.PauseOnCombat.Hint"),
+    name: t("KRONOS.Settings.PauseOnCombat.Name"),
+    hint: t("KRONOS.Settings.PauseOnCombat.Hint"),
     scope: "world",
     config: true,
     type: Boolean,
@@ -106,18 +106,21 @@ export function registerSettings(onBarRefresh: () => void, onClockRefresh: () =>
   });
 
   register(SETTINGS.sceneWeatherSync, {
-    name: t("PF2ECALENDARBAR.Settings.SceneWeatherSync.Name"),
-    hint: t("PF2ECALENDARBAR.Settings.SceneWeatherSync.Hint"),
+    name: t("KRONOS.Settings.SceneWeatherSync.Name"),
+    hint: t("KRONOS.Settings.SceneWeatherSync.Hint"),
     scope: "world",
     config: true,
     type: Boolean,
-    default: false,
+    // On by default. It writes to Scene documents, which argued for opt-in, but the no-stomp guard
+    // and the per-scene opt-out already cover that — and shipping it off made a working feature
+    // look broken.
+    default: true,
     onChange: onBarRefresh,
   });
 
   register(SETTINGS.calendarFile, {
-    name: t("PF2ECALENDARBAR.Settings.CalendarFile.Name"),
-    hint: t("PF2ECALENDARBAR.Settings.CalendarFile.Hint"),
+    name: t("KRONOS.Settings.CalendarFile.Name"),
+    hint: t("KRONOS.Settings.CalendarFile.Hint"),
     scope: "world",
     config: true,
     type: String,
@@ -126,9 +129,9 @@ export function registerSettings(onBarRefresh: () => void, onClockRefresh: () =>
   });
 
   game.settings.registerMenu(MODULE_ID, "weatherMappingMenu", {
-    name: t("PF2ECALENDARBAR.Mapping.Name"),
-    label: t("PF2ECALENDARBAR.Mapping.Label"),
-    hint: t("PF2ECALENDARBAR.Mapping.Hint"),
+    name: t("KRONOS.Mapping.Name"),
+    label: t("KRONOS.Mapping.Label"),
+    hint: t("KRONOS.Mapping.Hint"),
     icon: "fa-solid fa-cloud-sun-rain",
     type: WeatherMappingApp,
     restricted: true,
@@ -168,7 +171,7 @@ export const getClockRatio = (): number => readNumber(SETTINGS.clockRatio, 1);
 export const getClockTickSeconds = (): number => readNumber(SETTINGS.clockTickSeconds, 10);
 export const shouldPauseOnCombat = (): boolean => readBoolean(SETTINGS.pauseOnCombat, true);
 export const isClockRunning = (): boolean => readBoolean(SETTINGS.clockRunning, false);
-export const isSceneWeatherSyncEnabled = (): boolean => readBoolean(SETTINGS.sceneWeatherSync, false);
+export const isSceneWeatherSyncEnabled = (): boolean => readBoolean(SETTINGS.sceneWeatherSync, true);
 export const getCalendarFile = (): string => (typeof read(SETTINGS.calendarFile) === "string" ? (read(SETTINGS.calendarFile) as string) : "");
 
 export function getClimate(): ClimateProfile {

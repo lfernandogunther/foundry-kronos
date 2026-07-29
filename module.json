@@ -1,6 +1,6 @@
 {
-  "id": "pf2e-calendar-bar",
-  "title": "PF2e Calendar Bar",
+  "id": "foundry-kronos",
+  "title": "Kronos",
   "description": "A compact toolbar showing the in-world season, date, time, weather and temperature, with GM controls to move time. Stays in sync with the Pathfinder 2e World Clock.",
   "version": "0.1.0",
   "compatibility": {
@@ -13,7 +13,7 @@
     }
   ],
   "esmodules": ["scripts/module.js"],
-  "styles": ["styles/calendar-bar.css"],
+  "styles": ["styles/kronos.css"],
   "languages": [
     {
       "lang": "en",

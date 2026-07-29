@@ -1,11 +1,11 @@
 /* The bar is a single dark pill floating over the canvas, matching the supplied design. */
 
-#pf2e-calendar-bar {
+#foundry-kronos {
   z-index: 60;
   pointer-events: auto;
 }
 
-#pf2e-calendar-bar .pcb-root {
+#foundry-kronos .kronos-root {
   display: flex;
   align-items: center;
   gap: 0.65rem;
@@ -29,45 +29,45 @@
   cursor: grab;
 }
 
-#pf2e-calendar-bar .pcb-root:active {
+#foundry-kronos .kronos-root:active {
   cursor: grabbing;
 }
 
-#pf2e-calendar-bar .pcb-readout {
+#foundry-kronos .kronos-readout {
   display: inline-flex;
   align-items: center;
 }
 
-#pf2e-calendar-bar .pcb-season {
+#foundry-kronos .kronos-season {
   font-size: 1.35rem;
 }
 
-#pf2e-calendar-bar .pcb-year,
-#pf2e-calendar-bar .pcb-time {
+#foundry-kronos .kronos-year,
+#foundry-kronos .kronos-time {
   font-variant-numeric: tabular-nums;
 }
 
-#pf2e-calendar-bar .pcb-temp {
+#foundry-kronos .kronos-temp {
   min-width: 2.4rem;
   font-variant-numeric: tabular-nums;
 }
 
-#pf2e-calendar-bar .pcb-clickable {
+#foundry-kronos .kronos-clickable {
   cursor: pointer;
 }
 
-#pf2e-calendar-bar .pcb-clickable:hover {
+#foundry-kronos .kronos-clickable:hover {
   color: #ffd89b;
 }
 
-#pf2e-calendar-bar .pcb-separator {
+#foundry-kronos .kronos-separator {
   width: 1px;
   height: 1.4rem;
   margin: 0 0.35rem;
   background: rgb(255 255 255 / 35%);
 }
 
-#pf2e-calendar-bar .pcb-button {
+#foundry-kronos .kronos-button {
   all: unset;
 
   display: inline-flex;
@@ -83,20 +83,20 @@
   cursor: pointer;
 }
 
-#pf2e-calendar-bar .pcb-button:hover {
+#foundry-kronos .kronos-button:hover {
   background: rgb(255 255 255 / 14%);
 }
 
-#pf2e-calendar-bar .pcb-button.pcb-active {
+#foundry-kronos .kronos-button.kronos-active {
   color: #8fe08f;
 }
 
 /* The clock is switched on but something outside it is holding time still. */
-#pf2e-calendar-bar .pcb-button.pcb-stalled {
+#foundry-kronos .kronos-button.kronos-stalled {
   color: #e0b34f;
 }
 
-#pf2e-calendar-bar .pcb-unit {
+#foundry-kronos .kronos-unit {
   height: 1.9rem;
   padding: 0 0.4rem;
 
@@ -110,17 +110,17 @@
   cursor: pointer;
 }
 
-#pf2e-calendar-bar .pcb-unit option {
+#foundry-kronos .kronos-unit option {
   color: initial;
 }
 
-.pcb-override .form-group {
+.kronos-override .form-group {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
 }
 
-.pcb-override label {
+.kronos-override label {
   flex: 0 0 9rem;
 }

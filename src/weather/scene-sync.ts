@@ -72,43 +72,74 @@ export function effectKeyFor(condition: WeatherCondition): string {
   return typeof value === "string" ? value : (defaultWeatherEffectMap()[condition] ?? "");
 }
 
-function targetScene(): FoundryScene | null {
-  const scenes = game.scenes;
-  return scenes?.viewed ?? scenes?.current ?? scenes?.active ?? null;
+/**
+ * The scene actually on screen. `canvas.scene` is unambiguous about that; the Scenes collection
+ * has carried differently-named accessors across versions, so it is only a fallback.
+ */
+export function targetScene(): FoundryScene | null {
+  return canvas?.scene ?? game.scenes?.current ?? game.scenes?.active ?? null;
 }
 
 function isActiveGM(): boolean {
   return game.user.isGM && game.users.activeGM?.id === game.user.id;
 }
 
+/** Why a sync attempt did nothing, so an inert feature never looks the same as a working one. */
+export type SyncOutcome =
+  | { applied: true; key: string; scene: string }
+  | { applied: false; reason: string; scene?: string };
+
 /**
- * Applies the condition to the current scene, if the GM has asked for that and the scene has not
+ * Applies the condition to the scene on screen, if the GM has asked for that and the scene has not
  * been dressed by hand.
  *
- * Silently doing nothing is the correct outcome for most of these branches — this writes to a
- * persistent document, so every reason to hold back wins over the reason to write.
+ * Every refusal is reported rather than swallowed. This writes to a persistent document, so the
+ * guards are deliberately generous — which makes it all the more important to be able to tell a
+ * guard from a bug.
  */
-export async function applySceneWeather(condition: WeatherCondition): Promise<void> {
-  if (!isSceneWeatherSyncEnabled() || !isActiveGM()) return;
+export async function applySceneWeather(condition: WeatherCondition): Promise<SyncOutcome> {
+  if (!isSceneWeatherSyncEnabled()) return report({ applied: false, reason: "scene weather sync is switched off in module settings" });
+  if (!isActiveGM()) return report({ applied: false, reason: "this client is not the active GM" });
 
   const scene = targetScene();
-  if (!scene || scene.getFlag(MODULE_ID, FLAG_OPT_OUT) === true) return;
+  if (!scene) return report({ applied: false, reason: "no scene is currently in view" });
+
+  if (scene.getFlag(MODULE_ID, FLAG_OPT_OUT) === true) {
+    return report({ applied: false, reason: "the scene is set to ignore calendar weather", scene: scene.name });
+  }
 
   const lastWritten = scene.getFlag(MODULE_ID, FLAG_LAST_WRITTEN);
   const currentWeather = scene.weather ?? "";
 
   // Anything we did not put there was put there deliberately by a person. Leave it.
-  if (currentWeather !== "" && currentWeather !== lastWritten) return;
+  if (currentWeather !== "" && currentWeather !== lastWritten) {
+    return report({
+      applied: false,
+      reason: `the scene's weather ("${currentWeather}") was set by hand, not by us`,
+      scene: scene.name,
+    });
+  }
 
   const key = effectKeyFor(condition);
-  if (key === currentWeather) return;
+  if (key === currentWeather) {
+    return report({ applied: false, reason: `already showing the effect for "${condition}"`, scene: scene.name });
+  }
 
   try {
     await scene.update({ weather: key });
     await scene.setFlag(MODULE_ID, FLAG_LAST_WRITTEN, key);
+    return report({ applied: true, key: key === "" ? "(none)" : key, scene: scene.name });
   } catch (error) {
-    console.error("pf2e-calendar-bar | could not apply scene weather:", error);
+    console.error(`${MODULE_ID} | could not apply scene weather:`, error);
+    return report({ applied: false, reason: "the scene update failed", scene: scene.name });
   }
+}
+
+function report(outcome: SyncOutcome): SyncOutcome {
+  const where = outcome.scene ? ` on "${outcome.scene}"` : "";
+  if (outcome.applied) console.log(`${MODULE_ID} | weather effect set to ${outcome.key}${where}`);
+  else console.log(`${MODULE_ID} | weather effect not applied${where}: ${outcome.reason}`);
+  return outcome;
 }
 
 export function isSceneOptedOut(scene: FoundryScene): boolean {

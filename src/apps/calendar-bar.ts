@@ -43,7 +43,7 @@ async function advance(seconds: number): Promise<void> {
 function button(icon: string, action: string, tooltip: string, extra: Record<string, string> = {}): HTMLButtonElement {
   const el = document.createElement("button");
   el.type = "button";
-  el.className = "pcb-button";
+  el.className = "kronos-button";
   el.dataset["action"] = action;
   el.textContent = icon;
   el.setAttribute("aria-label", tooltip);
@@ -54,7 +54,7 @@ function button(icon: string, action: string, tooltip: string, extra: Record<str
 
 function readout(className: string, text: string, tooltip?: string): HTMLSpanElement {
   const el = document.createElement("span");
-  el.className = `pcb-readout ${className}`;
+  el.className = `kronos-readout ${className}`;
   el.textContent = text;
   if (tooltip) el.title = tooltip;
   return el;
@@ -71,7 +71,7 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
   static override DEFAULT_OPTIONS = {
     id: MODULE_ID,
     window: { frame: false, positioned: false },
-    classes: ["pcb-bar"],
+    classes: ["kronos-bar"],
   };
 
   #dragOffset: { x: number; y: number } | null = null;
@@ -80,27 +80,27 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
   protected override async _renderHTML(): Promise<HTMLElement> {
     const date = getWorldDate();
     const root = document.createElement("div");
-    root.className = "pcb-root";
+    root.className = "kronos-root";
 
     const season = seasonOf(date.month, date.day);
-    root.append(readout("pcb-season", SEASON_ICONS[season], t(`PF2ECALENDARBAR.Season.${season}`)));
+    root.append(readout("kronos-season", SEASON_ICONS[season], t(`KRONOS.Season.${season}`)));
 
     const day = String(date.day).padStart(2, "0");
-    root.append(readout("pcb-date", `${day} ${date.monthName}`, date.weekdayName));
-    root.append(readout("pcb-year", String(date.year), date.era));
+    root.append(readout("kronos-date", `${day} ${date.monthName}`, date.weekdayName));
+    root.append(readout("kronos-year", String(date.year), date.era));
     root.append(
-      readout("pcb-time", `${String(date.hour).padStart(2, "0")}:${String(date.minute).padStart(2, "0")}`),
+      readout("kronos-time", `${String(date.hour).padStart(2, "0")}:${String(date.minute).padStart(2, "0")}`),
     );
 
     if (isWeatherEnabled()) {
       const weather = weatherFor(date);
-      const label = readout("pcb-weather", t(`PF2ECALENDARBAR.Weather.${weather.condition}`));
-      const temperature = readout("pcb-temp", `${temperatureAt(date.hour, date.minute, weather)}°`);
+      const label = readout("kronos-weather", t(`KRONOS.Weather.${weather.condition}`));
+      const temperature = readout("kronos-temp", `${temperatureAt(date.hour, date.minute, weather)}°`);
       if (game.user.isGM) {
-        label.classList.add("pcb-clickable");
+        label.classList.add("kronos-clickable");
         label.dataset["action"] = "override-weather";
-        label.title = t("PF2ECALENDARBAR.Action.OverrideWeather");
-        temperature.classList.add("pcb-clickable");
+        label.title = t("KRONOS.Action.OverrideWeather");
+        temperature.classList.add("kronos-clickable");
         temperature.dataset["action"] = "override-weather";
       }
       root.append(label, temperature);
@@ -109,7 +109,7 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
     if (!game.user.isGM) return root;
 
     const separator = document.createElement("span");
-    separator.className = "pcb-separator";
+    separator.className = "kronos-separator";
     root.append(separator);
 
     const halt = haltReason();
@@ -118,40 +118,40 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
       running ? "⏸" : "▶",
       "toggle-clock",
       running && halt !== null && halt !== "paused"
-        ? t(`PF2ECALENDARBAR.Clock.Halted.${halt}`)
-        : t(running ? "PF2ECALENDARBAR.Clock.Pause" : "PF2ECALENDARBAR.Clock.Run"),
+        ? t(`KRONOS.Clock.Halted.${halt}`)
+        : t(running ? "KRONOS.Clock.Pause" : "KRONOS.Clock.Run"),
     );
-    pause.classList.toggle("pcb-active", running && halt === null);
-    pause.classList.toggle("pcb-stalled", running && halt !== null);
+    pause.classList.toggle("kronos-active", running && halt === null);
+    pause.classList.toggle("kronos-stalled", running && halt !== null);
     root.append(pause);
 
     const multiplier = getStepMultiplier();
     root.append(
-      button("⏪", "step", t("PF2ECALENDARBAR.Action.StepBackMany"), { count: String(-multiplier) }),
-      button("◀", "step", t("PF2ECALENDARBAR.Action.StepBackOne"), { count: "-1" }),
-      button("🌅", "jump", t("PF2ECALENDARBAR.Action.Sunrise"), { target: "sunrise" }),
-      button("☀", "jump", t("PF2ECALENDARBAR.Action.Noon"), { target: "noon" }),
+      button("⏪", "step", t("KRONOS.Action.StepBackMany"), { count: String(-multiplier) }),
+      button("◀", "step", t("KRONOS.Action.StepBackOne"), { count: "-1" }),
+      button("🌅", "jump", t("KRONOS.Action.Sunrise"), { target: "sunrise" }),
+      button("☀", "jump", t("KRONOS.Action.Noon"), { target: "noon" }),
     );
 
     const select = document.createElement("select");
-    select.className = "pcb-unit";
+    select.className = "kronos-unit";
     select.dataset["action"] = "set-unit";
-    select.title = t("PF2ECALENDARBAR.Action.StepUnit");
+    select.title = t("KRONOS.Action.StepUnit");
     const unit = getStepUnit();
     for (const option of STEP_UNITS) {
       const el = document.createElement("option");
       el.value = option;
-      el.textContent = t(`PF2ECALENDARBAR.Unit.${option}`);
+      el.textContent = t(`KRONOS.Unit.${option}`);
       el.selected = option === unit;
       select.append(el);
     }
     root.append(select);
 
     root.append(
-      button("🌇", "jump", t("PF2ECALENDARBAR.Action.Sunset"), { target: "sunset" }),
-      button("🌙", "jump", t("PF2ECALENDARBAR.Action.Midnight"), { target: "midnight" }),
-      button("▶", "step", t("PF2ECALENDARBAR.Action.StepForwardOne"), { count: "1" }),
-      button("⏩", "step", t("PF2ECALENDARBAR.Action.StepForwardMany"), { count: String(multiplier) }),
+      button("🌇", "jump", t("KRONOS.Action.Sunset"), { target: "sunset" }),
+      button("🌙", "jump", t("KRONOS.Action.Midnight"), { target: "midnight" }),
+      button("▶", "step", t("KRONOS.Action.StepForwardOne"), { count: "1" }),
+      button("⏩", "step", t("KRONOS.Action.StepForwardMany"), { count: String(multiplier) }),
     );
 
     return root;

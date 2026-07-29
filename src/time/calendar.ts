@@ -1,4 +1,5 @@
 import bundledGolarion from "../../data/calendars/golarion-ar.json" with { type: "json" };
+import { MODULE_ID } from "../constants.js";
 
 /**
  * The display layer of the calendar: what the months and weekdays are called, the era suffix,
@@ -82,7 +83,7 @@ export async function loadCalendarLabels(path: string): Promise<CalendarLabels |
     if (!isCalendarLabels(parsed)) throw new Error("missing or malformed months/weekdays/yearOffset");
     return parsed;
   } catch (error) {
-    console.error(`pf2e-calendar-bar | could not load calendar labels from "${path}":`, error);
+    console.error(`${MODULE_ID} | could not load calendar labels from "${path}":`, error);
     return null;
   }
 }

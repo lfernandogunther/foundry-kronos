@@ -1,4 +1,4 @@
-# 01 — PF2e Calendar Bar
+# 01 — Calendar bar
 
 ## What & why
 

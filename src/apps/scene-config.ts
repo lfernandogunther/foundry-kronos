@@ -31,7 +31,7 @@ export function injectSceneWeatherOptOut(app: unknown, rendered: unknown): void 
   group.className = "form-group";
 
   const label = document.createElement("label");
-  label.textContent = t("PF2ECALENDARBAR.Scene.OptOut.Name");
+  label.textContent = t("KRONOS.Scene.OptOut.Name");
 
   const fields = document.createElement("div");
   fields.className = "form-fields";
@@ -46,7 +46,7 @@ export function injectSceneWeatherOptOut(app: unknown, rendered: unknown): void 
 
   const hint = document.createElement("p");
   hint.className = "hint";
-  hint.textContent = t("PF2ECALENDARBAR.Scene.OptOut.Hint");
+  hint.textContent = t("KRONOS.Scene.OptOut.Hint");
 
   fields.append(checkbox);
   group.append(label, fields, hint);

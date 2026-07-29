@@ -15,7 +15,7 @@ export class WeatherMappingApp extends foundry.applications.api.ApplicationV2 {
   static override DEFAULT_OPTIONS = {
     id: `${MODULE_ID}-weather-mapping`,
     tag: "form",
-    window: { title: "PF2ECALENDARBAR.Mapping.Title", contentClasses: ["standard-form"] },
+    window: { title: "KRONOS.Mapping.Title", contentClasses: ["standard-form"] },
     position: { width: 460 },
   };
 
@@ -25,11 +25,11 @@ export class WeatherMappingApp extends foundry.applications.api.ApplicationV2 {
     const effects = Object.entries(CONFIG.weatherEffects ?? {});
 
     const root = document.createElement("div");
-    root.className = "pcb-mapping";
+    root.className = "kronos-mapping";
 
     const note = document.createElement("p");
     note.className = "notes";
-    note.textContent = t("PF2ECALENDARBAR.Mapping.Hint");
+    note.textContent = t("KRONOS.Mapping.Hint");
     root.append(note);
 
     for (const condition of WEATHER_CONDITIONS) {
@@ -37,18 +37,18 @@ export class WeatherMappingApp extends foundry.applications.api.ApplicationV2 {
       group.className = "form-group";
 
       const label = document.createElement("label");
-      label.htmlFor = `pcb-map-${condition}`;
-      label.textContent = t(`PF2ECALENDARBAR.Weather.${condition}`);
+      label.htmlFor = `kronos-map-${condition}`;
+      label.textContent = t(`KRONOS.Weather.${condition}`);
 
       const select = document.createElement("select");
-      select.id = `pcb-map-${condition}`;
+      select.id = `kronos-map-${condition}`;
       select.name = condition;
 
       const current = configured[condition] ?? fallback[condition] ?? "";
 
       const none = document.createElement("option");
       none.value = "";
-      none.textContent = t("PF2ECALENDARBAR.Mapping.NoEffect");
+      none.textContent = t("KRONOS.Mapping.NoEffect");
       none.selected = current === "";
       select.append(none);
 
@@ -69,7 +69,7 @@ export class WeatherMappingApp extends foundry.applications.api.ApplicationV2 {
     const save = document.createElement("button");
     save.type = "button";
     save.dataset["action"] = "save-mapping";
-    save.textContent = t("PF2ECALENDARBAR.Mapping.Save");
+    save.textContent = t("KRONOS.Mapping.Save");
     footer.append(save);
     root.append(footer);
 

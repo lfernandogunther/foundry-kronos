@@ -1,3 +1,4 @@
+import { MODULE_ID } from "../constants.js";
 import { getClockRatio, getClockTickSeconds, isClockRunning, shouldPauseOnCombat } from "../settings.js";
 
 /**
@@ -38,7 +39,7 @@ async function tick(): Promise<void> {
   try {
     await game.time.advance(getClockRatio() * getClockTickSeconds());
   } catch (error) {
-    console.error("pf2e-calendar-bar | advancing world time failed:", error);
+    console.error(`${MODULE_ID} | advancing world time failed:`, error);
   } finally {
     advancing = false;
   }
