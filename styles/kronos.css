@@ -47,6 +47,12 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Set apart from the date it belongs to, since it appears on a handful of days a year. */
+#foundry-kronos .kronos-festival {
+  color: #e8c66a;
+  font-style: italic;
+}
+
 #foundry-kronos .kronos-temp {
   min-width: 2.4rem;
   font-variant-numeric: tabular-nums;

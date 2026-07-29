@@ -87,6 +87,10 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
     const day = String(date.day).padStart(2, "0");
     root.append(readout("kronos-date", `${day} ${date.monthName}`, date.weekdayName));
     root.append(readout("kronos-year", String(date.year), date.era));
+
+    // A holy day is worth saying out loud, and only the calendar knows which days those are.
+    if (date.festival) root.append(readout("kronos-festival", `✦ ${date.festival}`, t("KRONOS.Festival")));
+
     root.append(
       readout("kronos-time", `${String(date.hour).padStart(2, "0")}:${String(date.minute).padStart(2, "0")}`),
     );
