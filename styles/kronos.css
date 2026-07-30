@@ -1,5 +1,36 @@
 /* The bar is a single dark pill floating over the canvas, matching the supplied design. */
 
+/*
+ * A 19-glyph subset of Material Symbols Outlined, bundled rather than fetched: a world with no
+ * internet, or a locked-down one, would otherwise draw no icons at all.
+ *
+ * Named for this module and not for the font it is cut from. Another module fetching the real
+ * Material Symbols would collide with a family of that name and lose every glyph this subset
+ * does not carry.
+ */
+@font-face {
+  font-family: "Kronos Symbols";
+  font-style: normal;
+  font-weight: 400;
+
+  /* The glyphs are private-use codepoints, so a fallback face would draw tofu either way. */
+  font-display: block;
+  src: url("./fonts/kronos-symbols.woff2") format("woff2");
+}
+
+#foundry-kronos .kronos-icon {
+  font-family: "Kronos Symbols", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+}
+
 #foundry-kronos {
   z-index: 60;
   pointer-events: auto;

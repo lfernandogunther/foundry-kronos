@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciador de Calendários Fantásticos</title>
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+  <style>
+    :root {
+      --bg-color: #080a0c;
+      --card-bg: #0f1318;
+      --card-border: #1d242e;
+      --accent-gold: #e5a93c;
+      --accent-gold-dark: #b88228;
+      --text-main: #d1d5db;
+      --text-muted: #6b7280;
+      --danger: #e64545;
+      --btn-bg: #171d26;
+      --btn-hover: #222a37;
+    }
+
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; user-select: none; }
+    body { background-color: var(--bg-color); color: var(--text-main); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+
+    .material-symbols-outlined { font-size: 1.2rem; vertical-align: middle; }
+
+    /* Wrapper para posicionar a aba do lado de fora do widget */
+    .widget-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 880px;
+      transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .widget-wrapper.compact {
+      max-width: 520px;
+    }
+
+    /* Container Principal */
+    .widget-container {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 22px 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      position: relative;
+    }
+
+    /* Aba Externa de Redimensionamento/Collapse Colada perfeitamente na Borda */
+    .collapse-tab {
+      position: absolute;
+      top: 18px;
+      right: -24px; /* Fixada rente à borda externa */
+      width: 24px;
+      height: 44px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-left: none; /* Colada ao painel */
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 4px 2px 8px rgba(0,0,0,0.4);
+      z-index: 10;
+      transition: color 0.2s, background 0.2s;
+    }
+    .collapse-tab:hover {
+      color: var(--accent-gold);
+      background: var(--btn-hover);
+    }
+
+    /* Regras do Modo Compacto */
+    .widget-wrapper.compact .timeline-container,
+    .widget-wrapper.compact .tags,
+    .widget-wrapper.compact .weather-display,
+    .widget-wrapper.compact .large-step-btn,
+    .widget-wrapper.compact .calendar-view {
+      display: none !important;
+    }
+
+    .widget-wrapper.compact .widget-container {
+      padding: 12px 14px;
+    }
+
+    .widget-wrapper.compact .widget-controls {
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      padding: 6px 10px;
+    }
+
+    .widget-wrapper.compact .time-display h1 { font-size: 1.6rem; }
+    .widget-wrapper.compact .time-display span { display: none; }
+    .widget-wrapper.compact .date-display h2 { font-size: 0.95rem; }
+
+    /* Garantir que o seletor de escala/modo fique visível na versão compacta */
+    .widget-wrapper.compact #stepScaleMode {
+      display: block !important;
+      font-size: 0.7rem;
+      padding: 2px 4px;
+    }
+
+    /* Linha do Tempo */
+    .timeline-container { position: relative; margin: 30px 15px 30px 15px; }
+    .timeline-bar {
+      position: relative;
+      height: 10px;
+      background: linear-gradient(90deg, #05080c 0%, #2a3d1c 25%, #8a7a3b 50%, #2a3d1c 75%, #05080c 100%);
+      border-radius: 5px;
+      border: 1px solid rgba(255,255,255,0.08);
+      cursor: pointer;
+    }
+    
+    .timeline-markers { position: absolute; width: 100%; top: -26px; left: 0; height: 20px; }
+    .marker-btn {
+      position: absolute;
+      transform: translateX(-50%);
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s, transform 0.2s;
+    }
+    .marker-btn:hover { color: var(--accent-gold); transform: translateX(-50%) scale(1.2); }
+
+    .timeline-labels { position: relative; width: 100%; height: 18px; margin-top: 8px; }
+    .label-time { position: absolute; transform: translateX(-50%); font-size: 0.7rem; color: var(--text-muted); font-family: monospace; }
+    
+    .timeline-handle {
+      position: absolute;
+      top: 50%; left: 0%;
+      transform: translate(-50%, -50%);
+      width: 18px; height: 18px;
+      background: var(--accent-gold);
+      border: 2px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 12px var(--accent-gold);
+      cursor: grab;
+      transition: transform 0.1s ease;
+      z-index: 2;
+    }
+    .timeline-handle:active { cursor: grabbing; transform: translate(-50%, -50%) scale(1.2); }
+
+    /* Grid do Painel */
+    .widget-controls {
+      display: grid;
+      grid-template-columns: auto auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      background: rgba(0,0,0,0.25);
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+
+    .time-display { border-right: 1px solid var(--card-border); padding-right: 16px; }
+    .time-display h1 { font-size: 2.2rem; color: var(--accent-gold); font-family: monospace; line-height: 1; }
+    .time-display span { font-size: 0.7rem; color: var(--text-muted); }
+
+    .date-display { border-right: 1px solid var(--card-border); padding-right: 16px; }
+    .weekday-title { font-size: 0.7rem; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+    .date-display h2 { font-size: 1.1rem; color: #fff; line-height: 1.1; }
+    .tags { display: flex; gap: 6px; margin-top: 4px; align-items: center; }
+    .tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 3px; text-transform: uppercase; font-weight: bold; }
+    .tag-season { background: rgba(225, 169, 60, 0.15); color: var(--accent-gold); border: 1px solid rgba(225, 169, 60, 0.3); }
+    
+    /* Dropdown de Calendários Ativos */
+    .calendar-select-dropdown {
+      background: rgba(184, 80, 40, 0.2);
+      color: #e67e22;
+      border: 1px solid rgba(184, 80, 40, 0.4);
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: bold;
+      padding: 1px 4px;
+      outline: none;
+      cursor: pointer;
+    }
+    .calendar-select-dropdown option { background: var(--card-bg); color: var(--text-main); }
+
+    /* Clima */
+    .weather-display {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--btn-bg);
+      padding: 6px 12px;
+      border-radius: 6px;
+      width: fit-content;
+      font-size: 0.8rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: 0.2s;
+      position: relative;
+    }
+    .weather-display:hover { border-color: var(--accent-gold); background: var(--btn-hover); }
+
+    .weather-picker {
+      position: absolute;
+      top: 110%; left: 0;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 6px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+      z-index: 100;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      width: 240px;
+    }
+    .weather-opt {
+      padding: 6px 8px;
+      font-size: 0.75rem;
+      border-radius: 4px;
+      background: var(--btn-bg);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .weather-opt:hover { background: var(--accent-gold); color: #111; }
+
+    /* Painel de Controle de Tempo */
+    .control-panel {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      background: var(--btn-bg);
+      padding: 4px 6px;
+      border-radius: 6px;
+      border: 1px solid var(--card-border);
+    }
+    
+    .mode-select {
+      background: #080a0c;
+      color: var(--accent-gold);
+      border: 1px solid var(--card-border);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      outline: none;
+      cursor: pointer;
+      margin: 0 4px;
+      text-align: center;
+    }
+
+    .icon-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      padding: 6px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+    }
+    .icon-btn:hover { background: var(--btn-hover); color: var(--accent-gold); }
+    .icon-btn.active-btn { color: var(--accent-gold); background: rgba(229, 169, 60, 0.15); }
+
+    /* Calendário Grid & Modais */
+    .calendar-view { margin-top: 16px; background: rgba(0,0,0,0.3); border: 1px solid var(--card-border); border-radius: 8px; padding: 16px; }
+    .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .cal-nav h3 { color: var(--accent-gold); font-size: 1rem; }
+    .grid-calendar { display: grid; gap: 6px; text-align: center; }
+    .grid-header { font-size: 0.75rem; color: var(--text-muted); font-weight: bold; padding-bottom: 6px; }
+    .grid-day { background: var(--btn-bg); border: 1px solid var(--card-border); border-radius: 6px; min-height: 55px; padding: 6px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; transition: 0.2s; }
+    .grid-day:hover { border-color: var(--accent-gold); }
+    .grid-day.active-day { border-color: var(--accent-gold); background: rgba(229, 169, 60, 0.1); }
+    .grid-day .day-num { font-size: 0.85rem; font-weight: bold; }
+    .grid-day .note-indicator { font-size: 0.65rem; background: var(--accent-gold-dark); color: #fff; padding: 1px 4px; border-radius: 3px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+    .modal-container { width: 100%; max-width: 650px; max-height: 85vh; overflow-y: auto; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 12px; margin-bottom: 16px; }
+    .modal-header h3 { color: var(--accent-gold); text-transform: uppercase; font-size: 1rem; }
+    
+    /* Lista de Gerenciamento de Calendários */
+    .cal-manager-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .cal-item-card { display: flex; justify-content: space-between; align-items: center; background: #080a0c; border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 14px; }
+    .cal-item-card.active-cal-card { border-color: var(--accent-gold); background: rgba(229, 169, 60, 0.05); }
+
+    /* Barra de Import/Export */
+    .json-tools-bar {
+      display: flex;
+      gap: 10px;
+      background: rgba(0,0,0,0.4);
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px dashed var(--card-border);
+      margin-bottom: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .wizard-steps { display: flex; gap: 6px; margin-bottom: 16px; }
+    .step-indicator { flex: 1; height: 4px; background: var(--card-border); border-radius: 2px; }
+    .step-indicator.active { background: var(--accent-gold); }
+    .form-group h4 { font-size: 0.85rem; color: var(--text-main); margin-bottom: 10px; border-bottom: 1px solid var(--card-border); padding-bottom: 4px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
+    input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 8px 10px; background: #080a0c; border: 1px solid var(--card-border); border-radius: 6px; color: #fff; font-size: 0.85rem; outline: none; }
+    textarea { height: 80px; resize: vertical; }
+    .dynamic-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+    .season-card { background: #080a0c; border: 1px solid var(--card-border); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+    .btn { background: var(--accent-gold); color: #111; font-weight: bold; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px; }
+    .btn:hover { background: var(--accent-gold-dark); }
+    .btn-secondary { background: transparent; border: 1px solid var(--card-border); color: var(--text-main); }
+    .btn-secondary:hover { background: var(--card-border); }
+    .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--card-border); padding: 6px 10px; }
+    .btn-add { width: 100%; border: 1px dashed var(--card-border); background: transparent; color: var(--accent-gold); margin-top: 6px; cursor: pointer; padding: 8px; border-radius: 6px; }
+    .actions { display: flex; justify-content: space-between; margin-top: 16px; border-top: 1px solid var(--card-border); padding-top: 14px; }
+  </style>
+</head>
+<body>
+
+  <!-- Wrapper Responsável por posições da aba externa e limites do modo compacto -->
+  <div class="widget-wrapper" id="widgetWrapper">
+
+    <!-- ABA EXTERNA COLADA NA BORDA PARA RECOLHER / EXPANDIR -->
+    <button class="collapse-tab" onclick="toggleCompactMode()" id="collapseTabBtn" title="Recolher / Expandir Widget">
+      <span class="material-symbols-outlined" id="collapseTabIcon">chevron_left</span>
+    </button>
+
+    <div class="widget-container" id="mainWidget">
+
+      <!-- Linha do Tempo -->
+      <div class="timeline-container">
+        <div class="timeline-markers" id="timelineMarkers">
+          <button class="marker-btn" style="left: 0%;" onclick="jumpToTime('00:00')" title="Meia-Noite"><span class="material-symbols-outlined">bedtime</span></button>
+          <button class="marker-btn" id="mSunrise" style="left: 25%;" onclick="jumpToTime(getCurrentSeason().sunrise)" title="Amanhecer"><span class="material-symbols-outlined">wb_twilight</span></button>
+          <button class="marker-btn" style="left: 50%;" onclick="jumpToTime('12:00')" title="Meio-Dia"><span class="material-symbols-outlined">wb_sunny</span></button>
+          <button class="marker-btn" id="mSunset" style="left: 91.6%;" onclick="jumpToTime(getCurrentSeason().sunset)" title="Pôr do Sol"><span class="material-symbols-outlined">wb_twilight</span></button>
+          <button class="marker-btn" style="left: 100%;" onclick="jumpToTime('23:59')" title="Fim do Dia"><span class="material-symbols-outlined">dark_mode</span></button>
+        </div>
+        
+        <div class="timeline-bar" id="timelineBar">
+          <div class="timeline-handle" id="timelineHandle"></div>
+        </div>
+        
+        <div class="timeline-labels">
+          <span class="label-time" style="left: 0%;">00:00</span>
+          <span class="label-time" id="lblSunrise" style="left: 25%;">06:00</span>
+          <span class="label-time" style="left: 50%;">12:00</span>
+          <span class="label-time" id="lblSunset" style="left: 91.6%;">22:00</span>
+          <span class="label-time" style="left: 100%;">24:00</span>
+        </div>
+      </div>
+
+      <!-- Controles -->
+      <div class="widget-controls">
+        
+        <div class="time-display">
+          <h1 id="wTime">22:00</h1>
+          <span id="wSeconds">00s (Round 1)</span>
+        </div>
+
+        <div class="date-display">
+          <div class="weekday-title" id="wWeekday">MARTIA</div>
+          <h2 id="wDate">08 Enudar</h2>
+          <div class="tags">
+            <span class="tag tag-season" id="wSeason">PRIMAVERA</span>
+            <select class="calendar-select-dropdown" id="widgetCalSelect" onchange="switchCalendar(this.value)" title="Alternar Calendário Ativo"></select>
+          </div>
+        </div>
+
+        <!-- Clima -->
+        <div class="weather-display" onclick="toggleWeatherPicker(event)">
+          <span class="material-symbols-outlined" id="weatherIcon">bedtime</span>
+          <div>
+            <strong id="weatherTemp" style="color:#fff;">14°C</strong>
+            <div id="weatherText" style="font-size:0.7rem; color:var(--text-muted);">Céu Limpo</div>
+          </div>
+
+          <div class="weather-picker" id="weatherPicker" style="display: none;" onclick="event.stopPropagation();">
+            <div class="weather-opt" onclick="setManualWeather('wb_sunny', 'Ensolarado', 22)"><span class="material-symbols-outlined">wb_sunny</span> Ensolarado</div>
+            <div class="weather-opt" onclick="setManualWeather('partly_cloudy_day', 'Céu Limpo', 18)"><span class="material-symbols-outlined">partly_cloudy_day</span> Céu Limpo</div>
+            <div class="weather-opt" onclick="setManualWeather('cloud', 'Nublado', 15)"><span class="material-symbols-outlined">cloud</span> Nublado</div>
+            <div class="weather-opt" onclick="setManualWeather('rainy', 'Chuva', 12)"><span class="material-symbols-outlined">rainy</span> Chuva</div>
+            <div class="weather-opt" onclick="setManualWeather('thunderstorm', 'Tempestade', 10)"><span class="material-symbols-outlined">thunderstorm</span> Tempestade</div>
+            <div class="weather-opt" onclick="setManualWeather('ac_unit', 'Nevasca', -5)"><span class="material-symbols-outlined">ac_unit</span> Nevasca</div>
+            <div class="weather-opt" onclick="resetAutoWeather()" style="grid-column: span 2; justify-content: center; background: rgba(229, 169, 60, 0.2); color: var(--accent-gold);">
+              🔄 Voltar ao Automático
+            </div>
+          </div>
+        </div>
+
+        <!-- PAINEL DE CONTROLE DE TEMPO -->
+        <div class="control-panel">
+          <button class="icon-btn large-step-btn" onclick="stepTime(-1, 'large')" title="Voltar Salto Maior (<<)">
+            <span class="material-symbols-outlined">keyboard_double_arrow_left</span>
+          </button>
+
+          <button class="icon-btn" onclick="stepTime(-1, 'small')" title="Voltar Salto Menor (<)">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </button>
+          
+          <!-- Mantido visível na versão compacta -->
+          <select class="mode-select" id="stepScaleMode" title="Escala do Tempo">
+            <option value="min_hr" selected>Min / Horas</option>
+            <option value="round_min">Rounds / Min</option>
+            <option value="day_month">Dias / Meses</option>
+            <option value="month_year">Meses / Anos</option>
+          </select>
+
+          <button class="icon-btn" onclick="stepTime(1, 'small')" title="Avançar Salto Menor (>)">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+
+          <button class="icon-btn large-step-btn" onclick="stepTime(1, 'large')" title="Avançar Salto Maior (>>)">
+            <span class="material-symbols-outlined">keyboard_double_arrow_right</span>
+          </button>
+
+          <button class="icon-btn" id="toggleCalViewBtn" onclick="toggleCalendarGrid()" title="Visualizar Calendário" style="margin-left: 6px;">
+            <span class="material-symbols-outlined">calendar_month</span>
+          </button>
+          
+          <button class="icon-btn" onclick="openSettingsModal()" title="Configurações" style="color:var(--accent-gold); border-left: 1px solid var(--card-border); margin-left: 4px; padding-left: 8px;">
+            <span class="material-symbols-outlined">settings</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- CALENDÁRIO GRID -->
+      <div class="calendar-view" id="calendarGridSection" style="display: none;">
+        <div class="cal-nav">
+          <button class="btn btn-secondary" style="padding: 4px 10px;" onclick="prevMonth()"><span class="material-symbols-outlined">chevron_left</span></button>
+          <h3 id="gridMonthTitle">Mês: Enudar (Ano 3658)</h3>
+          <button class="btn btn-secondary" style="padding: 4px 10px;" onclick="nextMonth()"><span class="material-symbols-outlined">chevron_right</span></button>
+        </div>
+        <div class="grid-calendar" id="gridCalendarDays"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIGURAÇÕES E GERENCIADOR -->
+  <div class="modal-overlay" id="settingsModal" style="display: none;">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modalTitle">Gerenciar Calendários</h3>
+        <button type="button" class="btn btn-secondary" style="padding:2px 8px;" onclick="closeSettingsModal()">✕</button>
+      </div>
+
+      <!-- PAINEL DE GERENCIAMENTO -->
+      <div id="calendarManagerView">
+        
+        <!-- FERRAMENTAS DE IMPORTAÇÃO E EXPORTAÇÃO -->
+        <div class="json-tools-bar">
+          <div style="font-size:0.75rem; color:var(--text-muted);">
+            <strong style="color:var(--accent-gold);">Backup & Importação:</strong>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-secondary" style="font-size:0.75rem; padding: 4px 8px;" onclick="exportAllCalendarsJSON()" title="Exportar Todos os Calendários">
+              <span class="material-symbols-outlined" style="font-size:1rem;">download</span> Exportar Tudo
+            </button>
+            <button class="btn btn-secondary" style="font-size:0.75rem; padding: 4px 8px;" onclick="document.getElementById('importFileInput').click()" title="Importar arquivo">
+              <span class="material-symbols-outlined" style="font-size:1rem;">upload</span> Importar Arquivo
+            </button>
+            <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="importCalendarsJSON(event)">
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h4 style="font-size: 0.85rem; color: var(--text-muted);">Seus Calendários Salvos:</h4>
+          <button class="btn" onclick="startNewCalendarWizard()">➕ Criar Novo Calendário</button>
+        </div>
+        
+        <div class="cal-manager-list" id="calendarListContainer"></div>
+      </div>
+
+      <!-- FORMULÁRIO DE EDIÇÃO / WIZARD -->
+      <div id="calendarFormView" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showManagerView()">← Voltar para Lista</button>
+          <label style="font-size: 0.8rem; color: var(--text-muted); cursor: pointer;">
+            <input type="checkbox" id="wizardToggle" checked onchange="toggleWizardMode()"> Usar Modo Wizard
+          </label>
+        </div>
+
+        <div class="wizard-steps" id="wizardTracker">
+          <div class="step-indicator active" id="ind-1"></div>
+          <div class="step-indicator" id="ind-2"></div>
+          <div class="step-indicator" id="ind-3"></div>
+          <div class="step-indicator" id="ind-4"></div>
+          <div class="step-indicator" id="ind-5"></div>
+        </div>
+
+        <form id="calendarForm">
+          <div class="step-content" id="step-1">
+            <div class="form-group">
+              <h4>1. Informações Básicas</h4>
+              <div style="margin-bottom: 10px;"><label>Nome do Calendário</label><input type="text" id="calName"></div>
+              <div><label>Ano Atual / Inicial</label><input type="number" id="calYear"></div>
+            </div>
+          </div>
+
+          <div class="step-content" id="step-2" style="display: none;">
+            <div class="form-group">
+              <h4>2. Dias da Semana</h4>
+              <div id="weekdaysContainer"></div>
+              <button type="button" class="btn-add" onclick="addWeekday()">+ Adicionar Dia</button>
+            </div>
+          </div>
+
+          <div class="step-content" id="step-3" style="display: none;">
+            <div class="form-group">
+              <h4>3. Meses do Ano</h4>
+              <div id="monthsContainer"></div>
+              <button type="button" class="btn-add" onclick="addMonth()">+ Adicionar Mês</button>
+            </div>
+          </div>
+
+          <div class="step-content" id="step-4" style="display: none;">
+            <div class="form-group">
+              <h4>4. Estações do Ano</h4>
+              <div id="seasonsContainer"></div>
+              <button type="button" class="btn-add" onclick="addSeason()">+ Adicionar Estação</button>
+            </div>
+          </div>
+
+          <div class="step-content" id="step-5" style="display: none;">
+            <div class="form-group">
+              <h4>5. Horários de Luz (Amanhecer / Anoitecer)</h4>
+              <div id="dayNightContainer"></div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="btn btn-secondary" onclick="showManagerView()">Cancelar</button>
+            <div style="flex: 1;"></div>
+            <button type="button" class="btn btn-secondary" id="btnPrev" onclick="changeStep(-1)" style="display: none; margin-right: 8px;">Voltar</button>
+            <button type="button" class="btn" id="btnNext" onclick="changeStep(1)">Próximo</button>
+            <button type="button" class="btn" id="btnSave" onclick="saveCalendar()" style="display: none;">Salvar Calendário</button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL DE NOTAS -->
+  <div class="modal-overlay" id="noteModal" style="display: none;">
+    <div class="modal-container" style="max-width: 450px;">
+      <div class="modal-header">
+        <h3 id="noteModalTitle">Notas do Dia</h3>
+        <button type="button" class="btn btn-secondary" style="padding:2px 8px;" onclick="closeNoteModal()">✕</button>
+      </div>
+      <div style="margin-bottom: 12px;">
+        <label>Anotação da Sessão / Evento</label>
+        <textarea id="dayNoteText" placeholder="Ex: O grupo descansou na estalagem..."></textarea>
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <button type="button" class="btn btn-danger" onclick="deleteNote()">Excluir Nota</button>
+        <button type="button" class="btn" onclick="saveNote()">Salvar Nota</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  let timeState = { hour: 22, minute: 0, second: 0, day: 8, monthIdx: 0, year: 3658 };
+
+  let calendarLibrary = {
+    "enu_3658": {
+      id: "enu_3658",
+      name: "Enudrani",
+      currentYear: 3658,
+      weekdays: ["Solaria", "Lunaria", "Martia", "Mercuria", "Jovial"],
+      months: [
+        { name: "Enudar", days: 30 },
+        { name: "Primavera", days: 31 },
+        { name: "Verano", days: 30 }
+      ],
+      seasons: [
+        { name: "Primavera", startDay: 21, startMonth: 0, endDay: 20, endMonth: 1, sunrise: "06:00", sunset: "22:00", minTemp: 10, maxTemp: 22 },
+        { name: "Verão", startDay: 21, startMonth: 1, endDay: 20, endMonth: 2, sunrise: "05:00", sunset: "21:00", minTemp: 20, maxTemp: 35 },
+        { name: "Inverno", startDay: 21, startMonth: 2, endDay: 20, endMonth: 0, sunrise: "07:30", sunset: "16:30", minTemp: -10, maxTemp: 5 }
+      ],
+      notes: { "3658-0-8": "Encontro na Vila dos Ferreiros." }
+    },
+    "greg_2026": {
+      id: "greg_2026",
+      name: "Calendário Humano (Gregoriano)",
+      currentYear: 1492,
+      weekdays: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"],
+      months: [
+        { name: "Janeiro", days: 31 },
+        { name: "Fevereiro", days: 28 },
+        { name: "Março", days: 31 }
+      ],
+      seasons: [
+        { name: "Verão", startDay: 1, startMonth: 0, endDay: 31, endMonth: 2, sunrise: "06:00", sunset: "19:00", minTemp: 18, maxTemp: 30 }
+      ],
+      notes: {}
+    }
+  };
+
+  let activeCalendarId = "enu_3658";
+  let activeCalendar = calendarLibrary[activeCalendarId];
+
+  let isManualWeather = false;
+  let manualWeatherData = {};
+
+  // Alternar Modo Compacto utilizando a aba externa
+  function toggleCompactMode() {
+    const wrapper = document.getElementById('widgetWrapper');
+    const icon = document.getElementById('collapseTabIcon');
+    const isCompact = wrapper.classList.toggle('compact');
+    
+    // Inverte a seta para indicar a ação de expansão/contração
+    icon.innerText = isCompact ? 'chevron_right' : 'chevron_left';
+  }
+
+  function switchCalendar(id) {
+    if (!calendarLibrary[id]) return;
+    activeCalendarId = id;
+    activeCalendar = calendarLibrary[id];
+    timeState.year = activeCalendar.currentYear;
+    timeState.monthIdx = 0;
+    timeState.day = 1;
+    normalizeTime();
+    updateWidgetUI();
+  }
+
+  const timelineBar = document.getElementById('timelineBar');
+  const timelineHandle = document.getElementById('timelineHandle');
+  let isDragging = false;
+
+  timelineBar.addEventListener('mousedown', (e) => { isDragging = true; updateTimeFromSlider(e); });
+  document.addEventListener('mousemove', (e) => { if (isDragging) updateTimeFromSlider(e); });
+  document.addEventListener('mouseup', () => { isDragging = false; });
+
+  function updateTimeFromSlider(e) {
+    const rect = timelineBar.getBoundingClientRect();
+    let offsetX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    const totalMinutes = Math.floor((offsetX / rect.width) * 1440);
+
+    timeState.hour = Math.floor(totalMinutes / 60);
+    timeState.minute = totalMinutes % 60;
+    timeState.second = 0;
+    normalizeTime();
+    updateWidgetUI();
+  }
+
+  function jumpToTime(timeStr) {
+    if (!timeStr) return;
+    const parts = timeStr.split(':');
+    timeState.hour = parseInt(parts[0]) || 0;
+    timeState.minute = parseInt(parts[1]) || 0;
+    timeState.second = 0;
+    normalizeTime();
+    updateWidgetUI();
+  }
+
+  function getCurrentSeason() {
+    return activeCalendar.seasons[0] || { name: "Primavera", sunrise: "06:00", sunset: "18:00", minTemp: 10, maxTemp: 22 };
+  }
+
+  function stepTime(dir, size) {
+    const scaleMode = document.getElementById('stepScaleMode').value;
+
+    if (scaleMode === 'min_hr') {
+      if (size === 'small') timeState.minute += 10 * dir;
+      else timeState.hour += 1 * dir;
+    } 
+    else if (scaleMode === 'round_min') {
+      if (size === 'small') timeState.second += 6 * dir;
+      else timeState.minute += 1 * dir;
+    }
+    else if (scaleMode === 'day_month') {
+      if (size === 'small') timeState.day += 1 * dir;
+      else timeState.monthIdx += 1 * dir;
+    }
+    else if (scaleMode === 'month_year') {
+      if (size === 'small') timeState.monthIdx += 1 * dir;
+      else timeState.year += 1 * dir;
+    }
+
+    normalizeTime();
+    updateWidgetUI();
+  }
+
+  function normalizeTime() {
+    while (timeState.second >= 60) { timeState.second -= 60; timeState.minute++; }
+    while (timeState.second < 0) { timeState.second += 60; timeState.minute--; }
+
+    while (timeState.minute >= 60) { timeState.minute -= 60; timeState.hour++; }
+    while (timeState.minute < 0) { timeState.minute += 60; timeState.hour--; }
+
+    while (timeState.hour >= 24) { timeState.hour -= 24; timeState.day++; }
+    while (timeState.hour < 0) { timeState.hour += 24; timeState.day--; }
+
+    const numMonths = activeCalendar.months.length || 1;
+    while (timeState.monthIdx >= numMonths) {
+      timeState.monthIdx -= numMonths;
+      timeState.year++;
+    }
+    while (timeState.monthIdx < 0) {
+      timeState.monthIdx += numMonths;
+      timeState.year--;
+    }
+
+    let curMonth = activeCalendar.months[timeState.monthIdx];
+    
+    while (timeState.day > curMonth.days) {
+      timeState.day -= curMonth.days;
+      timeState.monthIdx++;
+      if (timeState.monthIdx >= numMonths) {
+        timeState.monthIdx = 0;
+        timeState.year++;
+      }
+      curMonth = activeCalendar.months[timeState.monthIdx];
+    }
+
+    while (timeState.day < 1) {
+      timeState.monthIdx--;
+      if (timeState.monthIdx < 0) {
+        timeState.monthIdx = numMonths - 1;
+        timeState.year--;
+      }
+      curMonth = activeCalendar.months[timeState.monthIdx];
+      timeState.day += curMonth.days;
+    }
+  }
+
+  function getWeekdayName() {
+    if (!activeCalendar.weekdays || activeCalendar.weekdays.length === 0) return "";
+    let totalDays = 0;
+    for (let i = 0; i < timeState.monthIdx; i++) totalDays += activeCalendar.months[i].days;
+    totalDays += (timeState.day - 1);
+    const dayIndex = ((totalDays % activeCalendar.weekdays.length) + activeCalendar.weekdays.length) % activeCalendar.weekdays.length;
+    return activeCalendar.weekdays[dayIndex];
+  }
+
+  function updateWidgetUI() {
+    const h = String(timeState.hour).padStart(2, '0');
+    const m = String(timeState.minute).padStart(2, '0');
+    const s = String(timeState.second).padStart(2, '0');
+    
+    document.getElementById('wTime').innerText = `${h}:${m}`;
+    document.getElementById('wSeconds').innerText = `${s}s (Round ${Math.floor(timeState.second/6) + 1})`;
+
+    const sliderPercent = Math.min(100, Math.max(0, ((timeState.hour * 60 + timeState.minute) / 1440) * 100));
+    timelineHandle.style.left = `${sliderPercent}%`;
+
+    const season = getCurrentSeason();
+    const srParts = (season.sunrise || "06:00").split(':');
+    const ssParts = (season.sunset || "18:00").split(':');
+    
+    const srPercent = ((parseInt(srParts[0]) * 60 + parseInt(srParts[1])) / 1440) * 100;
+    const ssPercent = ((parseInt(ssParts[0]) * 60 + parseInt(ssParts[1])) / 1440) * 100;
+
+    document.getElementById('mSunrise').style.left = `${srPercent}%`;
+    document.getElementById('mSunset').style.left = `${ssPercent}%`;
+    
+    const lblSunrise = document.getElementById('lblSunrise');
+    const lblSunset = document.getElementById('lblSunset');
+
+    lblSunrise.style.left = `${srPercent}%`;
+    lblSunrise.innerText = season.sunrise || "06:00";
+
+    lblSunset.style.left = `${ssPercent}%`;
+    lblSunset.innerText = season.sunset || "18:00";
+
+    const month = activeCalendar.months[timeState.monthIdx] || activeCalendar.months[0];
+    document.getElementById('wWeekday').innerText = getWeekdayName();
+    document.getElementById('wDate').innerText = `${String(timeState.day).padStart(2, '0')} ${month.name} (${timeState.year})`;
+
+    updateWidgetDropdown();
+    updateWeather();
+    if (document.getElementById('calendarGridSection').style.display !== 'none') {
+      renderCalendarGrid();
+    }
+  }
+
+  function updateWidgetDropdown() {
+    const sel = document.getElementById('widgetCalSelect');
+    sel.innerHTML = '';
+    Object.keys(calendarLibrary).forEach(id => {
+      const cal = calendarLibrary[id];
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.innerText = cal.name.toUpperCase();
+      if (id === activeCalendarId) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  function updateWeather() {
+    if (isManualWeather) {
+      document.getElementById('weatherIcon').innerText = manualWeatherData.icon;
+      document.getElementById('weatherText').innerText = manualWeatherData.text;
+      document.getElementById('weatherTemp').innerText = `${manualWeatherData.temp}°C`;
+      return;
+    }
+
+    const season = getCurrentSeason();
+    document.getElementById('wSeason').innerText = season.name.toUpperCase();
+
+    const minT = season.minTemp ?? 10;
+    const maxT = season.maxTemp ?? 22;
+
+    const factor = (Math.sin(((timeState.hour - 9) / 24) * 2 * Math.PI) + 1) / 2;
+    const currentTemp = Math.round(minT + factor * (maxT - minT));
+
+    let weatherIcon = 'wb_sunny';
+    let weatherText = 'Ensolarado';
+
+    if (currentTemp <= 0) { weatherIcon = 'ac_unit'; weatherText = 'Frio Intenso'; }
+    else if (timeState.hour < 6 || timeState.hour >= 22) { weatherIcon = 'bedtime'; weatherText = 'Céu Limpo'; }
+    else if (currentTemp > 28) { weatherIcon = 'wb_sunny'; weatherText = 'Ensolarado'; }
+    else { weatherIcon = 'partly_cloudy_day'; weatherText = 'Céu Limpo'; }
+
+    document.getElementById('weatherIcon').innerText = weatherIcon;
+    document.getElementById('weatherText').innerText = weatherText;
+    document.getElementById('weatherTemp').innerText = `${currentTemp}°C`;
+  }
+
+  function toggleWeatherPicker(e) {
+    e.stopPropagation();
+    const p = document.getElementById('weatherPicker');
+    p.style.display = p.style.display === 'none' ? 'grid' : 'none';
+  }
+
+  function setManualWeather(icon, text, temp) {
+    isManualWeather = true;
+    manualWeatherData = { icon, text, temp };
+    document.getElementById('weatherPicker').style.display = 'none';
+    updateWidgetUI();
+  }
+
+  function resetAutoWeather() {
+    isManualWeather = false;
+    document.getElementById('weatherPicker').style.display = 'none';
+    updateWidgetUI();
+  }
+
+  document.addEventListener('click', () => { document.getElementById('weatherPicker').style.display = 'none'; });
+
+  function toggleCalendarGrid() {
+    const gridSec = document.getElementById('calendarGridSection');
+    const btn = document.getElementById('toggleCalViewBtn');
+    const isOpen = gridSec.style.display !== 'none';
+    gridSec.style.display = isOpen ? 'none' : 'block';
+    btn.classList.toggle('active-btn', !isOpen);
+    if (!isOpen) renderCalendarGrid();
+  }
+
+  function renderCalendarGrid() {
+    const month = activeCalendar.months[timeState.monthIdx] || activeCalendar.months[0];
+    document.getElementById('gridMonthTitle').innerText = `${month.name} (Ano ${timeState.year})`;
+
+    const container = document.getElementById('gridCalendarDays');
+    container.style.gridTemplateColumns = `repeat(${activeCalendar.weekdays.length}, 1fr)`;
+    container.innerHTML = '';
+
+    activeCalendar.weekdays.forEach(dayName => { container.innerHTML += `<div class="grid-header">${dayName}</div>`; });
+
+    for (let d = 1; d <= month.days; d++) {
+      const noteKey = `${timeState.year}-${timeState.monthIdx}-${d}`;
+      const note = activeCalendar.notes[noteKey];
+      const isCurrentDay = (d === timeState.day);
+
+      container.innerHTML += `
+        <div class="grid-day ${isCurrentDay ? 'active-day' : ''}" onclick="openNoteModal(${d})">
+          <span class="day-num">${d}</span>
+          ${note ? `<span class="note-indicator" title="${note}">📝 ${note}</span>` : ''}
+        </div>`;
+    }
+  }
+
+  function prevMonth() { timeState.monthIdx--; normalizeTime(); updateWidgetUI(); }
+  function nextMonth() { timeState.monthIdx++; normalizeTime(); updateWidgetUI(); }
+
+  let selectedDayForNote = null;
+  function openNoteModal(day) {
+    selectedDayForNote = day;
+    const noteKey = `${timeState.year}-${timeState.monthIdx}-${day}`;
+    document.getElementById('noteModalTitle').innerText = `Dia ${day} de ${activeCalendar.months[timeState.monthIdx].name}`;
+    document.getElementById('dayNoteText').value = activeCalendar.notes[noteKey] || '';
+    document.getElementById('noteModal').style.display = 'flex';
+  }
+
+  function closeNoteModal() { document.getElementById('noteModal').style.display = 'none'; }
+
+  function saveNote() {
+    const noteKey = `${timeState.year}-${timeState.monthIdx}-${selectedDayForNote}`;
+    const txt = document.getElementById('dayNoteText').value.trim();
+    if (txt) activeCalendar.notes[noteKey] = txt;
+    else delete activeCalendar.notes[noteKey];
+    closeNoteModal();
+    renderCalendarGrid();
+  }
+
+  function deleteNote() {
+    const noteKey = `${timeState.year}-${timeState.monthIdx}-${selectedDayForNote}`;
+    delete activeCalendar.notes[noteKey];
+    closeNoteModal();
+    renderCalendarGrid();
+  }
+
+  // --- EXPORTAR E IMPORTAR ARQUIVOS ---
+
+  function downloadJSONFile(data, filename) {
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function exportAllCalendarsJSON() {
+    downloadJSONFile(calendarLibrary, `calendarios_backup_${Date.now()}.json`);
+  }
+
+  function exportSingleCalendarJSON(id) {
+    const cal = calendarLibrary[id];
+    if (!cal) return;
+    const safeName = cal.name.toLowerCase().replace(/[^a-z0-9]/g, "_");
+    downloadJSONFile(cal, `calendario_${safeName}.json`);
+  }
+
+  function importCalendarsJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const importedData = JSON.parse(e.target.result);
+
+        if (importedData.id && importedData.name && importedData.months) {
+          calendarLibrary[importedData.id] = importedData;
+          alert(`Calendário "${importedData.name}" importado com sucesso!`);
+        } 
+        else if (typeof importedData === 'object') {
+          let count = 0;
+          Object.keys(importedData).forEach(key => {
+            const item = importedData[key];
+            if (item.id && item.name && item.months) {
+              calendarLibrary[item.id] = item;
+              count++;
+            }
+          });
+          if (count > 0) alert(`${count} calendário(s) importado(s) com sucesso!`);
+          else alert("Nenhum calendário válido foi encontrado no arquivo.");
+        } else {
+          alert("Estrutura do arquivo inválida.");
+        }
+
+        renderCalendarManagerList();
+        updateWidgetUI();
+      } catch (err) {
+        alert("Erro ao ler o arquivo. Certifique-se de que é um formato válido.");
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = "";
+  }
+
+  // GERENCIADOR E WIZARD
+  let formData = {};
+  let editingCalId = null;
+  let currentStep = 1;
+  let useWizard = true;
+
+  function openSettingsModal() {
+    showManagerView();
+    document.getElementById('settingsModal').style.display = 'flex';
+  }
+  function closeSettingsModal() { document.getElementById('settingsModal').style.display = 'none'; }
+
+  function showManagerView() {
+    document.getElementById('calendarManagerView').style.display = 'block';
+    document.getElementById('calendarFormView').style.display = 'none';
+    renderCalendarManagerList();
+  }
+
+  function renderCalendarManagerList() {
+    const container = document.getElementById('calendarListContainer');
+    container.innerHTML = '';
+
+    Object.keys(calendarLibrary).forEach(id => {
+      const cal = calendarLibrary[id];
+      const isActive = id === activeCalendarId;
+
+      container.innerHTML += `
+        <div class="cal-item-card ${isActive ? 'active-cal-card' : ''}">
+          <div>
+            <strong style="color: #fff;">${cal.name}</strong>
+            <div style="font-size:0.7rem; color:var(--text-muted);">${cal.months.length} Meses • ${cal.weekdays.length} Dias na Semana</div>
+          </div>
+          <div style="display:flex; gap:6px;">
+            ${!isActive ? `<button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="switchCalendar('${id}'); renderCalendarManagerList();">Ativar</button>` : `<span class="tag tag-season">Ativo</span>`}
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="exportSingleCalendarJSON('${id}')" title="Exportar este Calendário">Exportar</button>
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="editCalendar('${id}')">✏️</button>
+            ${Object.keys(calendarLibrary).length > 1 ? `<button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteCalendar('${id}')">✕</button>` : ''}
+          </div>
+        </div>`;
+    });
+  }
+
+  function editCalendar(id) {
+    editingCalId = id;
+    formData = JSON.parse(JSON.stringify(calendarLibrary[id]));
+    document.getElementById('modalTitle').innerText = `Editar: ${formData.name}`;
+    showFormView();
+  }
+
+  function startNewCalendarWizard() {
+    editingCalId = "cal_" + Date.now();
+    formData = {
+      id: editingCalId,
+      name: "Novo Calendário", currentYear: 1,
+      weekdays: ["Solaria", "Lunaria", "Martia"], 
+      months: [{ name: "Mês 1", days: 30 }],
+      seasons: [{ name: "Primavera", startDay: 1, startMonth: 0, endDay: 30, endMonth: 0, sunrise: "06:00", sunset: "18:00", minTemp: 10, maxTemp: 25 }],
+      notes: {}
+    };
+    document.getElementById('modalTitle').innerText = "Novo Calendário";
+    showFormView();
+  }
+
+  function deleteCalendar(id) {
+    if (confirm("Certeza que deseja excluir este calendário?")) {
+      delete calendarLibrary[id];
+      if (activeCalendarId === id) {
+        activeCalendarId = Object.keys(calendarLibrary)[0];
+        activeCalendar = calendarLibrary[activeCalendarId];
+      }
+      renderCalendarManagerList();
+      updateWidgetUI();
+    }
+  }
+
+  function showFormView() {
+    document.getElementById('calendarManagerView').style.display = 'none';
+    document.getElementById('calendarFormView').style.display = 'block';
+    populateForm();
+  }
+
+  function populateForm() {
+    document.getElementById('calName').value = formData.name;
+    document.getElementById('calYear').value = formData.currentYear;
+    renderAllSections();
+    currentStep = 1;
+    updateStepVisibility();
+  }
+
+  function renderAllSections() { renderWeekdays(); renderMonths(); renderSeasons(); renderDayNight(); }
+
+  function renderWeekdays() {
+    const c = document.getElementById('weekdaysContainer'); c.innerHTML = '';
+    formData.weekdays.forEach((day, i) => {
+      c.innerHTML += `<div class="dynamic-row"><input type="text" value="${day}" oninput="formData.weekdays[${i}] = this.value"><button type="button" class="btn btn-danger" onclick="formData.weekdays.splice(${i},1); renderAllSections();">✕</button></div>`;
+    });
+  }
+  function addWeekday() { formData.weekdays.push(`Dia ${formData.weekdays.length + 1}`); renderWeekdays(); }
+
+  function renderMonths() {
+    const c = document.getElementById('monthsContainer'); c.innerHTML = '';
+    formData.months.forEach((m, i) => {
+      c.innerHTML += `<div class="dynamic-row"><input type="text" value="${m.name}" oninput="formData.months[${i}].name = this.value; renderSeasons();" style="flex:2;"><input type="number" value="${m.days}" oninput="formData.months[${i}].days = parseInt(this.value)||0" style="flex:1;"><button type="button" class="btn btn-danger" onclick="formData.months.splice(${i},1); renderAllSections();">✕</button></div>`;
+    });
+  }
+  function addMonth() { formData.months.push({ name: `Mês ${formData.months.length + 1}`, days: 30 }); renderMonths(); }
+
+  function renderSeasons() {
+    const c = document.getElementById('seasonsContainer'); c.innerHTML = '';
+    formData.seasons.forEach((s, i) => {
+      let monthOpts = formData.months.map((m, idx) => `<option value="${idx}" ${s.startMonth===idx?'selected':''}>${m.name || 'Mês '+(idx+1)}</option>`).join('');
+      c.innerHTML += `
+        <div class="season-card">
+          <div class="dynamic-row">
+            <input type="text" value="${s.name}" placeholder="Nome da Estação" oninput="formData.seasons[${i}].name = this.value; renderDayNight();">
+            <button type="button" class="btn btn-danger" onclick="formData.seasons.splice(${i},1); renderAllSections();">✕</button>
+          </div>
+          <div class="grid-2" style="margin-bottom: 8px;">
+            <div><label>Início (Dia/Mês)</label><div class="grid-2"><input type="number" value="${s.startDay}" oninput="formData.seasons[${i}].startDay = parseInt(this.value)"><select onchange="formData.seasons[${i}].startMonth = parseInt(this.value)">${monthOpts}</select></div></div>
+            <div><label>Fim (Dia/Mês)</label><div class="grid-2"><input type="number" value="${s.endDay}" oninput="formData.seasons[${i}].endDay = parseInt(this.value)"><select onchange="formData.seasons[${i}].endMonth = parseInt(this.value)">${monthOpts}</select></div></div>
+          </div>
+          <div class="grid-2">
+            <div><label>Temp. Mínima (°C)</label><input type="number" value="${s.minTemp ?? 10}" oninput="formData.seasons[${i}].minTemp = parseInt(this.value)"></div>
+            <div><label>Temp. Máxima (°C)</label><input type="number" value="${s.maxTemp ?? 25}" oninput="formData.seasons[${i}].maxTemp = parseInt(this.value)"></div>
+          </div>
+        </div>`;
+    });
+  }
+  function addSeason() { formData.seasons.push({ name: "Nova Estação", startDay: 1, startMonth: 0, endDay: 30, endMonth: 0, sunrise: "06:00", sunset: "18:00", minTemp: 10, maxTemp: 25 }); renderAllSections(); }
+
+  function renderDayNight() {
+    const c = document.getElementById('dayNightContainer'); c.innerHTML = '';
+    formData.seasons.forEach((s, i) => {
+      c.innerHTML += `
+        <div class="season-card"><strong style="color:var(--accent-gold); font-size:0.85rem;">${s.name}</strong>
+          <div class="grid-2" style="margin-top:6px;">
+            <div><label>Amanhecer (HH:MM)</label><input type="text" value="${s.sunrise || '06:00'}" oninput="formData.seasons[${i}].sunrise = this.value"></div>
+            <div><label>Anoitecer (HH:MM)</label><input type="text" value="${s.sunset || '18:00'}" oninput="formData.seasons[${i}].sunset = this.value"></div>
+          </div>
+        </div>`;
+    });
+  }
+
+  function toggleWizardMode() {
+    useWizard = document.getElementById('wizardToggle').checked;
+    document.getElementById('wizardTracker').style.display = useWizard ? 'flex' : 'none';
+    if (!useWizard) {
+      for(let i=1; i<=5; i++) document.getElementById(`step-${i}`).style.display = 'block';
+      document.getElementById('btnPrev').style.display = 'none';
+      document.getElementById('btnNext').style.display = 'none';
+      document.getElementById('btnSave').style.display = 'block';
+    } else {
+      currentStep = 1; updateStepVisibility();
+    }
+  }
+
+  function changeStep(delta) { currentStep = Math.min(Math.max(currentStep + delta, 1), 5); updateStepVisibility(); }
+
+  function updateStepVisibility() {
+    if (!useWizard) return;
+    for (let i = 1; i <= 5; i++) {
+      document.getElementById(`step-${i}`).style.display = (i === currentStep) ? 'block' : 'none';
+      document.getElementById(`ind-${i}`).classList.toggle('active', i <= currentStep);
+    }
+    document.getElementById('btnPrev').style.display = currentStep > 1 ? 'block' : 'none';
+    document.getElementById('btnNext').style.display = currentStep < 5 ? 'block' : 'none';
+    document.getElementById('btnSave').style.display = currentStep === 5 ? 'block' : 'none';
+  }
+
+  function saveCalendar() {
+    formData.name = document.getElementById('calName').value || "Calendário Sem Nome";
+    formData.currentYear = parseInt(document.getElementById('calYear').value) || 1;
+    
+    calendarLibrary[formData.id] = JSON.parse(JSON.stringify(formData));
+    activeCalendarId = formData.id;
+    activeCalendar = calendarLibrary[activeCalendarId];
+    
+    timeState.year = activeCalendar.currentYear;
+    showManagerView();
+    updateWidgetUI();
+  }
+
+  // Inicialização
+  updateWidgetUI();
+</script>
+</body>
+</html>
