@@ -19,12 +19,21 @@ import { isStepUnit, STEP_UNITS, type StepUnit, stepSeconds } from "../time/unit
 import { temperatureAt } from "../weather/generator.js";
 import { weatherFor } from "../weather/state.js";
 import { ICON, weatherIcon } from "./icons.js";
-import { timelineLayout } from "./timeline.js";
+import { minutesAt, timelineLayout } from "./timeline.js";
 import { openWeatherOverride } from "./weather-override.js";
 
 const t = (key: string): string => game.i18n?.localize(key) ?? key;
 
 const pad = (value: number): string => String(value).padStart(2, "0");
+
+const MINUTES_PER_DAY = 1440;
+
+/** Where along the track the pointer is, as a time of day. */
+function minutesFromPointer(clientX: number, track: HTMLElement): number {
+  const rect = track.getBoundingClientRect();
+  // A zero-width track cannot be read from; midnight is the harmless answer.
+  return rect.width > 0 ? minutesAt((clientX - rect.left) / rect.width) : 0;
+}
 
 async function advance(seconds: number): Promise<void> {
   if (!game.user.isGM || seconds === 0) return;
@@ -81,7 +90,18 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
   };
 
   #dragOffset: { x: number; y: number } | null = null;
+  #timelineDrag = false;
   #listening = false;
+
+  /**
+   * Whether a pointer gesture is in progress.
+   *
+   * A re-render replaces the whole panel, which would detach the element a gesture is holding — the
+   * clock ticks every ten seconds, so a slow drag would otherwise be interrupted mid-way.
+   */
+  get gesturing(): boolean {
+    return this.#dragOffset !== null || this.#timelineDrag;
+  }
 
   protected override async _renderHTML(): Promise<HTMLElement> {
     const date = getWorldDate();
@@ -348,9 +368,56 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
     if (isStepUnit(value)) await setStepUnit(value as StepUnit);
   }
 
+  /**
+   * Setting the time by pointer: a click anywhere on the track, or a drag of the handle.
+   *
+   * The handle is moved locally while the pointer is down and world time is written once, on release.
+   * Writing on every move would broadcast a world update per pixel, and each one re-triggers darkness
+   * sync and every module's `updateWorldTime` handler.
+   */
+  #onTimelineDown(event: PointerEvent, track: HTMLElement): void {
+    const handle = track.querySelector<HTMLElement>(".kronos-handle");
+    let minutes = minutesFromPointer(event.clientX, track);
+
+    const show = (value: number): void => {
+      if (handle) handle.style.left = `${(value / MINUTES_PER_DAY) * 100}%`;
+    };
+
+    const onMove = (move: PointerEvent): void => {
+      minutes = minutesFromPointer(move.clientX, track);
+      show(minutes);
+    };
+
+    const onUp = (): void => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      this.#timelineDrag = false;
+
+      // Read the clock now rather than at the start of the gesture: the ticker may have moved it, and
+      // the target is a time of day either way.
+      void advance(secondsToTimeOfDay(game.time.worldTime, minutes));
+    };
+
+    this.#timelineDrag = true;
+    show(minutes);
+    event.preventDefault();
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  }
+
   /** Dragging moves the panel; the controls inside it must still be clickable. */
   #onPointerDown(event: PointerEvent): void {
     const target = event.target as HTMLElement | null;
+
+    // The track carries an action only for a GM, so a player's pointer falls straight through to the
+    // panel drag below.
+    const track = target?.closest<HTMLElement>('.kronos-track[data-action="timeline"]');
+    if (track) {
+      this.#onTimelineDown(event, track);
+      return;
+    }
+
     if (target?.closest("button, select, [data-action]")) return;
 
     const element = this.element;
@@ -386,5 +453,5 @@ export function getCalendarBar(): CalendarBar {
 
 /** Re-render only when it is already on screen, so this is safe to call from any hook. */
 export function refreshCalendarBar(): void {
-  if (instance?.rendered) void instance.render();
+  if (instance?.rendered && !instance.gesturing) void instance.render();
 }

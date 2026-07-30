@@ -164,6 +164,9 @@
 /* Only a GM's track carries an action, and only theirs is interactive. */
 #foundry-kronos .kronos-track[data-action] {
   cursor: pointer;
+
+  /* A drag on a touch screen must set the time, not scroll the page. */
+  touch-action: none;
 }
 
 #foundry-kronos .kronos-handle {

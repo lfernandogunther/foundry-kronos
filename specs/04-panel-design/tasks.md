@@ -24,7 +24,7 @@ stylesheet without the markup, leaves the panel broken on the branch.
       plan. The player path returns before the markers, the control panel and the gear are built.
       `SEASON_ICONS` deleted, against the build
 
-- [ ] **4. Timeline interaction** — markers, bar clicks and handle drag, all through
+- [x] **4. Timeline interaction** — markers, bar clicks and handle drag, all through
       `secondsToTimeOfDay`. The handle follows the pointer locally and world time is written once, on
       release. Panel dragging still ignores the timeline
 
