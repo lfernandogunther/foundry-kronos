@@ -10,7 +10,7 @@ import {
   parseCalendar,
   setCalendar,
 } from "../../src/time/calendar.js";
-import { getWorldDate, secondsUntilTimeOfDay } from "../../src/time/clock.js";
+import { getWorldDate, secondsToTimeOfDay } from "../../src/time/clock.js";
 import { dayOfYearOf } from "../../src/time/reckoning.js";
 import { seasonOf } from "../../src/time/season.js";
 import { daylightMinutes, solarEvents } from "../../src/time/sun.js";
@@ -238,12 +238,13 @@ describe("Tarlan in force", () => {
     expect(tarlanDate.monthName).not.toBe("Gozran");
   });
 
-  it("jumps to a time of day off its own day", () => {
+  it("sets a time of day off its own day", () => {
     setCalendar(shipped);
     const evening = on(6, 20, 21);
-    const delta = secondsUntilTimeOfDay(evening, 12 * 60);
-    expect(delta).toBeGreaterThan(0);
-    expect(getWorldDate(evening + delta).hour).toBe(12);
+    const delta = secondsToTimeOfDay(evening, 12 * 60);
+    // Backwards, and still the same day: 21:00 to noon is this day's noon.
+    expect(delta).toBeLessThan(0);
+    expect(getWorldDate(evening + delta)).toMatchObject({ hour: 12, month: 6, day: 20 });
   });
 
   it("keys its weather under its own name, so no override leaks between calendars", () => {

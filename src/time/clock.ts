@@ -22,7 +22,6 @@ import {
  * to know the difference.
  */
 
-const SECONDS_PER_DAY = 86_400;
 const SECONDS_PER_HOUR = 3600;
 const SECONDS_PER_MINUTE = 60;
 
@@ -238,11 +237,14 @@ function gregorianStepSeconds(worldTime: number, count: number, unit: "month" | 
   return Math.round((target - fromUtcMs) / 1000);
 }
 
-/** Seconds from `worldTime` to the next time this calendar's clock reads `targetMinutes` past midnight. */
-export function secondsUntilTimeOfDay(worldTime: number, targetMinutes: number): number {
-  const target = startOfDayWorldTime(worldTime) + Math.round(targetMinutes * SECONDS_PER_MINUTE);
-
-  // Always forward: asking for sunrise at noon means tomorrow's sunrise, never this morning's. That
-  // keeps the jump buttons from silently rewinding a session.
-  return target <= worldTime ? target + SECONDS_PER_DAY - worldTime : target - worldTime;
+/**
+ * Signed seconds from `worldTime` to the moment this calendar's clock reads `targetMinutes` past
+ * midnight, on the day it is now.
+ *
+ * Negative when that moment has already passed. That is what a timeline spanning one day requires:
+ * dropping the handle to the left of where it was has to move time left. Rounding an earlier time up
+ * to tomorrow's instead would turn a one-pixel drag backwards into a jump of nearly a full day.
+ */
+export function secondsToTimeOfDay(worldTime: number, targetMinutes: number): number {
+  return startOfDayWorldTime(worldTime) + Math.round(targetMinutes * SECONDS_PER_MINUTE) - worldTime;
 }

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import { BUNDLED_CALENDAR, type CalendarDefinition, parseCalendar, setCalendar } from "../../src/time/calendar.js";
-import { describeGregorian, getWorldDate, secondsUntilTimeOfDay, startOfDayWorldTime } from "../../src/time/clock.js";
+import { describeGregorian, getWorldDate, secondsToTimeOfDay, startOfDayWorldTime } from "../../src/time/clock.js";
 
 /** The test world was created at the Unix epoch, so a world time is seconds since 1970. */
 const at = (y: number, m: number, d: number, h = 0, min = 0): number => Date.UTC(y, m - 1, d, h, min) / 1000;
@@ -92,33 +92,37 @@ describe("the day key over the Gregorian structure", () => {
   });
 });
 
-describe("secondsUntilTimeOfDay over the Gregorian structure", () => {
-  it("moves forward within the same day", () => {
-    // 08:00, jumping to noon.
-    expect(secondsUntilTimeOfDay(at(2025, 6, 15, 8, 0), 12 * 60)).toBe(4 * HOUR);
+describe("secondsToTimeOfDay over the Gregorian structure", () => {
+  it("moves forward when the target is later in the day", () => {
+    // 08:00, setting the clock to noon.
+    expect(secondsToTimeOfDay(at(2025, 6, 15, 8, 0), 12 * 60)).toBe(4 * HOUR);
   });
 
-  it("rolls into tomorrow rather than rewinding", () => {
-    // 14:00, asking for 06:00 — that is tomorrow morning, 16 hours ahead.
-    expect(secondsUntilTimeOfDay(at(2025, 6, 15, 14, 0), 6 * 60)).toBe(16 * HOUR);
+  it("rewinds when the target is earlier in the day", () => {
+    // 14:00, setting the clock to 06:00 — this morning, eight hours back, not tomorrow morning.
+    // The timeline spans one day, so dragging the handle left has to move time left.
+    expect(secondsToTimeOfDay(at(2025, 6, 15, 14, 0), 6 * 60)).toBe(-8 * HOUR);
   });
 
-  it("treats the current instant as a full day away, never as zero", () => {
-    // Standing exactly on noon and asking for noon should advance a day, not do nothing.
-    expect(secondsUntilTimeOfDay(at(2025, 6, 15, 12, 0), 12 * 60)).toBe(DAY);
+  it("is zero when the clock already reads the target", () => {
+    expect(secondsToTimeOfDay(at(2025, 6, 15, 12, 0), 12 * 60)).toBe(0);
   });
 
-  it("never returns a negative delta, at any time of day", () => {
+  it("stays inside the day it started in, at any time and for any target", () => {
+    // The one invariant the drag depends on: no gesture on a one-day bar may change the date.
     for (let minute = 0; minute < 1440; minute += 7) {
+      const worldTime = at(2025, 6, 15) + minute * 60;
       for (const target of [0, 245, 720, 1195, 1439]) {
-        expect(secondsUntilTimeOfDay(at(2025, 6, 15) + minute * 60, target)).toBeGreaterThan(0);
+        const landed = worldTime + secondsToTimeOfDay(worldTime, target);
+        expect(landed).toBeGreaterThanOrEqual(at(2025, 6, 15));
+        expect(landed).toBeLessThan(at(2025, 6, 16));
       }
     }
   });
 
   it("handles a fractional target time", () => {
     // 04:05 sunrise from midnight.
-    expect(secondsUntilTimeOfDay(at(2025, 6, 15, 0, 0), 244.86)).toBe(14_692);
+    expect(secondsToTimeOfDay(at(2025, 6, 15, 0, 0), 244.86)).toBe(14_692);
   });
 });
 
@@ -177,10 +181,10 @@ describe("a calendar anchored to the present", () => {
     expect(getWorldDate(startOfDayWorldTime(ANCHOR)).hour).toBe(0);
   });
 
-  it("jumps to a time of day off its own day boundary", () => {
+  it("sets a time of day off its own day boundary", () => {
     setCalendar(tarlan);
-    // 21:30, asking for 06:00: tomorrow morning, 8h30m ahead.
-    expect(secondsUntilTimeOfDay(ANCHOR, 6 * 60)).toBe(8 * HOUR + 30 * 60);
+    // 21:30, asking for 06:00: this morning, 15h30m back.
+    expect(secondsToTimeOfDay(ANCHOR, 6 * 60)).toBe(-(15 * HOUR + 30 * 60));
   });
 
   it("advances the date without a 32nd day or a February", () => {

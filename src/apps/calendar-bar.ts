@@ -10,7 +10,7 @@ import {
   setClockRunning,
   setStepUnit,
 } from "../settings.js";
-import { getWorldDate, secondsUntilTimeOfDay, type WorldDate } from "../time/clock.js";
+import { getWorldDate, secondsToTimeOfDay, type WorldDate } from "../time/clock.js";
 import { SEASON_ICONS } from "../time/season.js";
 import { solarEvents } from "../time/sun.js";
 import { haltReason } from "../time/ticker.js";
@@ -213,7 +213,7 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
       case "jump": {
         const jump = target.dataset["target"] as JumpTarget | undefined;
         if (!jump) break;
-        await advance(secondsUntilTimeOfDay(date.worldTime, targetMinutes(jump, date)));
+        await advance(secondsToTimeOfDay(date.worldTime, targetMinutes(jump, date)));
         break;
       }
       case "override-weather":

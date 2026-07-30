@@ -14,7 +14,7 @@ stylesheet without the markup, leaves the panel broken on the branch.
       real font. Snow is `ac_unit`, not `weather_snowy`, which is indistinguishable from `rainy` at
       the size the panel draws it
 
-- [ ] **2. Setting the time inside a day** — `secondsToTimeOfDay(worldTime, minutes)` in
+- [x] **2. Setting the time inside a day** — `secondsToTimeOfDay(worldTime, minutes)` in
       `src/time/clock.ts`, signed and confined to the current in-world day, with tests for earlier,
       later and now. Delete `secondsUntilTimeOfDay` if the build proves it has no remaining caller
 
