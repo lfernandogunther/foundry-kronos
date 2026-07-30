@@ -1,13 +1,26 @@
 # Kronos
 
-A floating toolbar for Foundry VTT v14 showing the in-world season, date, time, weather and
+A floating panel for Foundry VTT v14 showing the in-world season, date, time, weather and
 temperature, with GM controls for moving time. Built for the Pathfinder 2e system.
 
 ```
-❄  08 Kuthona  4725  11:15  Clear  -8  |  ⏸ ⏪ ◀  🌅 ☀  [unit ▾]  🌇 🌙  ▶ ⏩
+                                                              ┌───┐
+ ┌────────────────────────────────────────────────────────────┤ ‹ │
+ │   🌙            🌅          ☀              🌇         🌗   └───┤
+ │   ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁●▁▁▁▁▁▁▁▁▁▁    │
+ │  00:00         07:53      12:00           16:07      24:00   │
+ │                                                              │
+ │ ┌──────────┬─────────────────┬───────────┬─────────────────┐ │
+ │ │  22:00   │ OATHDAY         │ 🌙 -8°C   │ ⏸ ⏪ ◀ [unit▾]  │ │
+ │ │  00s     │ 08 Kuthona      │    Clear  │      ▶ ⏩  │ ⚙   │ │
+ │ │          │ (4725) · WINTER │           │                 │ │
+ │ └──────────┴─────────────────┴───────────┴─────────────────┘ │
+ └──────────────────────────────────────────────────────────────┘
 ```
 
-Players see the readout. Everything right of the separator is GM-only.
+The timeline is one in-world day. Players see it and the readouts; the marker buttons, the handle and
+the control panel are GM-only. The tab on the right border collapses the panel to a narrow strip, per
+client. Drag the panel by its background to move it, and it stays where you put it.
 
 ## Installing
 
@@ -106,14 +119,28 @@ same instant rather than moving it.
 
 | Control | Does |
 | --- | --- |
+| the timeline | Click anywhere on it, or drag the handle, to set the time of day |
+| `🌙` `🌅` `☀` `🌇` `🌗` | Set the clock to midnight, sunrise, noon, sunset or the end of the day |
 | `⏸` / `▶` | Stops or starts **time only** — the game keeps running |
 | `⏪` `◀` `▶` `⏩` | Move by the selected unit; outer arrows move the configured multiple |
-| `🌅` `☀` `🌇` `🌙` | Jump forward to the next sunrise, noon, sunset or midnight |
 | unit select | second, round (6s), minute, hour, day, month, year |
 | condition / temperature | GM click opens the weather override |
+| `⚙` | Opens the module settings |
+| the tab on the border | Collapses and expands the panel, remembered per client |
+
+Everything on the timeline works **inside the day it is already**, and may therefore move time
+backwards: dragging the handle left moves the clock left, and asking for sunrise at ten at night
+rewinds to that morning rather than advancing to the next one. That is what a bar spanning a single
+day has to mean — the alternative turns a small drag backwards into a jump of nearly a full day. The
+step arrows are unaffected and still move in whichever direction they point.
 
 Sunrise and sunset shift across the year from a configurable latitude, defaulting to central
-Europe. PF2e's own World Clock uses fixed dawn and dusk times, so its jumps land elsewhere.
+Europe, and the two markers move along the bar with them. PF2e's own World Clock uses fixed dawn and
+dusk times, so its jumps land elsewhere.
+
+Collapsing the panel hides the timeline, so it hides the solar markers with it, along with the season
+tag, the weather and the outer step arrows. The time, the date, the inner arrows and the unit select
+stay.
 
 ## The real-time clock
 
@@ -218,3 +245,26 @@ npm run typecheck
 npm run test
 npm run check     # all of the above plus the build
 ```
+
+### The panel's icons
+
+The panel draws its icons from a twenty-glyph subset of Material Symbols Outlined, committed at
+`styles/fonts/kronos-symbols.woff2` — about 2 KB. It is bundled rather than fetched, because a world
+with no internet, or a locked-down one, would otherwise show no icons at all. The family is
+registered as `Kronos Symbols` so a subset this small cannot shadow the real font for another module.
+
+`src/apps/icons.json` maps each symbol's name to its codepoint and is the single source: the panel
+imports it, and the font is generated from it. Adding an icon means adding a line there and running
+
+```bash
+node tools/fetch-icons.mjs
+```
+
+which re-cuts the subset and commits nothing — the resulting `.woff2` is checked in by hand. It is
+never run by the build: a network call in the release path would make an offline build fail. Every
+name is checked against Google's upstream codepoint table first, because the stylesheet endpoint
+echoes back whatever range it was asked for — a codepoint no glyph lives at comes back "covered" and
+would ship a font that silently draws a missing-glyph box.
+
+The symbols are addressed by codepoint rather than by ligature name, since a subset cut by codepoint
+carries no ligature table and writing the name would render the literal word.

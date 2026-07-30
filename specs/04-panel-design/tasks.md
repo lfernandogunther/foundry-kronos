@@ -38,7 +38,7 @@ stylesheet without the markup, leaves the panel broken on the branch.
       weather block, and `kronos-modal` on the override dialog so its styling reaches the reference's
       modal look. No change to what the dialog does
 
-- [ ] **7. Strings and the README** — `lang/en.json` for the tab, the gear, the timeline and the
+- [x] **7. Strings and the README** — `lang/en.json` for the tab, the gear, the timeline and the
       reworded solar targets; the README's controls table, the timeline's within-the-day semantics
       replacing the forward-only wording, and the collapse tab. The pill diagram at the top replaced
 
