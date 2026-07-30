@@ -43,7 +43,7 @@ geometry, and the icon table. Everything else in the panel is markup.
 ## Key decisions
 
 **The icon font is addressed by codepoint.** Google's `css2?...&text=` endpoint subsets by character,
-which produces a 2.3 KB file for the nineteen glyphs — but a codepoint subset carries no ligature table, so
+which produces a 2.3 KB file for the twenty glyphs — but a codepoint subset carries no ligature table, so
 `<span>wb_sunny</span>` would render as the literal word. Writing `""` works either way and
 cannot silently degrade. `icons.json` holds the codepoints as hex strings so the file is readable and
 so `fetch-icons.mjs` can build the `text=` parameter from it without parsing TypeScript.
@@ -54,7 +54,7 @@ reproducible rather than mysterious; it asserts the returned font is non-empty a
 codepoint the CSS declares.
 
 **`@font-face` is named `Kronos Symbols`**, not `Material Symbols Outlined`. Another module fetching
-the real font would otherwise collide with our nineteen-glyph subset and lose most of its icons.
+the real font would otherwise collide with our twenty-glyph subset and lose most of its icons.
 
 **Timeline geometry is a pure function.** `timelineLayout(date, latitude)` returns the handle
 percentage and the five markers as `{ action, target, minutes, percent, label }`. That makes the

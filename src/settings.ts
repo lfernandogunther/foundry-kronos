@@ -26,6 +26,7 @@ export const SETTINGS = {
   calendar: "calendar",
   calendarFile: "calendarFile",
   barPosition: "barPosition",
+  barCompact: "barCompact",
   stepUnit: "stepUnit",
 } as const;
 
@@ -192,6 +193,8 @@ export function registerSettings(onBarRefresh: () => void, onClockRefresh: () =>
   register(SETTINGS.climate, { scope: "world", config: false, type: Object, default: TEMPERATE_EUROPE });
   register(SETTINGS.weatherEffectMap, { scope: "world", config: false, type: Object, default: {} });
   register(SETTINGS.barPosition, { scope: "client", config: false, type: Object, default: null });
+  // Per client: how much of the panel someone wants on their own screen is not a world decision.
+  register(SETTINGS.barCompact, { scope: "client", config: false, type: Boolean, default: false });
   register(SETTINGS.stepUnit, { scope: "client", config: false, type: String, default: "minute" });
 }
 
@@ -244,6 +247,11 @@ export function getClimate(): ClimateProfile {
   // Merged rather than replaced so a partially-filled object cannot produce NaN temperatures.
   return { ...TEMPERATE_EUROPE, ...(value as Partial<ClimateProfile>) };
 }
+
+export const isBarCompact = (): boolean => readBoolean(SETTINGS.barCompact, false);
+
+export const setBarCompact = (compact: boolean): Promise<unknown> =>
+  game.settings.set(MODULE_ID, SETTINGS.barCompact, compact);
 
 export function getStepUnit(): StepUnit {
   const value = read(SETTINGS.stepUnit);

@@ -74,6 +74,8 @@ declare const game: {
     set(namespace: string, key: string, value: unknown): Promise<unknown>;
     register(namespace: string, key: string, data: SettingRegistration): void;
     registerMenu(namespace: string, key: string, data: Record<string, unknown>): void;
+    /** The settings application, opened by the panel's gear. Absent before `setup`. */
+    sheet?: { render(force?: boolean | Record<string, unknown>): unknown };
   };
   /** PF2e system API. Present only when the pf2e system is active; shape is not a public contract. */
   pf2e?: {

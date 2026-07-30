@@ -1,6 +1,6 @@
 export type Season = "winter" | "spring" | "summer" | "autumn";
 
-const SEASONS: readonly Season[] = ["winter", "spring", "summer", "autumn"] as const;
+export const SEASONS: readonly Season[] = ["winter", "spring", "summer", "autumn"] as const;
 
 export function isSeason(value: unknown): value is Season {
   return typeof value === "string" && (SEASONS as readonly string[]).includes(value);
@@ -43,13 +43,6 @@ export function seasonOf(month: number, day: number, boundaries: readonly Season
   }
   return current;
 }
-
-export const SEASON_ICONS: Readonly<Record<Season, string>> = {
-  winter: "❄",
-  spring: "❀",
-  summer: "☀",
-  autumn: "🍂",
-};
 
 /** Fraction through the year used to shape seasonal weather: 0 at midwinter, 1 at midsummer. */
 export function summerness(dayOfYear: number, daysInYear: number): number {

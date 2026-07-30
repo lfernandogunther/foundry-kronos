@@ -4,32 +4,27 @@ import {
   getLatitude,
   getStepMultiplier,
   getStepUnit,
+  isBarCompact,
   isClockRunning,
   isWeatherEnabled,
+  setBarCompact,
   setBarPosition,
   setClockRunning,
   setStepUnit,
 } from "../settings.js";
 import { getWorldDate, secondsToTimeOfDay, type WorldDate } from "../time/clock.js";
-import { SEASON_ICONS } from "../time/season.js";
-import { solarEvents } from "../time/sun.js";
+import { isDaylight } from "../time/sun.js";
 import { haltReason } from "../time/ticker.js";
 import { isStepUnit, STEP_UNITS, type StepUnit, stepSeconds } from "../time/units.js";
 import { temperatureAt } from "../weather/generator.js";
 import { weatherFor } from "../weather/state.js";
+import { ICON, weatherIcon } from "./icons.js";
+import { timelineLayout } from "./timeline.js";
 import { openWeatherOverride } from "./weather-override.js";
 
 const t = (key: string): string => game.i18n?.localize(key) ?? key;
 
-type JumpTarget = "sunrise" | "noon" | "sunset" | "midnight";
-
-function targetMinutes(target: JumpTarget, date: WorldDate): number {
-  if (target === "midnight") return 0;
-  const events = solarEvents(date.dayOfYear, getLatitude());
-  if (target === "sunrise") return events.sunrise;
-  if (target === "noon") return events.noon;
-  return events.sunset;
-}
+const pad = (value: number): string => String(value).padStart(2, "0");
 
 async function advance(seconds: number): Promise<void> {
   if (!game.user.isGM || seconds === 0) return;
@@ -40,28 +35,39 @@ async function advance(seconds: number): Promise<void> {
   }
 }
 
-function button(icon: string, action: string, tooltip: string, extra: Record<string, string> = {}): HTMLButtonElement {
-  const el = document.createElement("button");
+function element<K extends keyof HTMLElementTagNameMap>(
+  tag: K,
+  className: string,
+  text?: string,
+): HTMLElementTagNameMap[K] {
+  const el = document.createElement(tag);
+  el.className = className;
+  if (text !== undefined) el.textContent = text;
+  return el;
+}
+
+/** A glyph from the bundled subset. Always paired with a label, so a font failure is not fatal. */
+function icon(glyph: string): HTMLSpanElement {
+  return element("span", "kronos-icon", glyph);
+}
+
+/**
+ * The base for every control. Variants add their own class rather than sharing one, so a marker
+ * cannot pick up the hover state of a control panel button.
+ */
+function button(glyph: string, action: string, tooltip: string, extra: Record<string, string> = {}): HTMLButtonElement {
+  const el = element("button", "kronos-button");
   el.type = "button";
-  el.className = "kronos-button";
   el.dataset["action"] = action;
-  el.textContent = icon;
+  el.append(icon(glyph));
   el.setAttribute("aria-label", tooltip);
   el.title = tooltip;
   for (const [key, value] of Object.entries(extra)) el.dataset[key] = value;
   return el;
 }
 
-function readout(className: string, text: string, tooltip?: string): HTMLSpanElement {
-  const el = document.createElement("span");
-  el.className = `kronos-readout ${className}`;
-  el.textContent = text;
-  if (tooltip) el.title = tooltip;
-  return el;
-}
-
 /**
- * The floating time and weather bar.
+ * The floating time and weather panel.
  *
  * Frameless and positioned by hand rather than through the window manager: it is a persistent
  * strip rather than a window, and hand-positioning keeps it independent of the core UI layout,
@@ -79,46 +85,142 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
 
   protected override async _renderHTML(): Promise<HTMLElement> {
     const date = getWorldDate();
-    const root = document.createElement("div");
-    root.className = "kronos-root";
+    const isGM = game.user.isGM;
 
-    root.append(readout("kronos-season", SEASON_ICONS[date.season], t(`KRONOS.Season.${date.season}`)));
+    const wrapper = element("div", "kronos-wrapper");
+    wrapper.classList.toggle("kronos-compact", isBarCompact());
 
-    const day = String(date.day).padStart(2, "0");
-    root.append(readout("kronos-date", `${day} ${date.monthName}`, date.weekdayName));
-    root.append(readout("kronos-year", String(date.year), date.era));
-
-    // A holy day is worth saying out loud, and only the calendar knows which days those are.
-    if (date.festival) root.append(readout("kronos-festival", `✦ ${date.festival}`, t("KRONOS.Festival")));
-
-    root.append(
-      readout("kronos-time", `${String(date.hour).padStart(2, "0")}:${String(date.minute).padStart(2, "0")}`),
+    // Outside the panel's right border, so collapsing it does not move the control it was collapsed
+    // with. Everyone gets one: how much of the panel to keep on screen is a per-client choice.
+    const compact = isBarCompact();
+    const tab = button(
+      compact ? ICON.expand : ICON.collapse,
+      "toggle-compact",
+      t(compact ? "KRONOS.Action.Expand" : "KRONOS.Action.Collapse"),
     );
+    tab.classList.add("kronos-tab");
+    wrapper.append(tab);
 
-    if (isWeatherEnabled()) {
-      const weather = weatherFor(date);
-      const label = readout("kronos-weather", t(`KRONOS.Weather.${weather.condition}`));
-      const temperature = readout("kronos-temp", `${temperatureAt(date.hour, date.minute, weather)}°`);
-      if (game.user.isGM) {
-        label.classList.add("kronos-clickable");
-        label.dataset["action"] = "override-weather";
-        label.title = t("KRONOS.Action.OverrideWeather");
-        temperature.classList.add("kronos-clickable");
-        temperature.dataset["action"] = "override-weather";
+    const panel = element("div", "kronos-panel");
+    panel.append(this.#timeline(date, isGM), this.#controls(date, isGM));
+    wrapper.append(panel);
+
+    return wrapper;
+  }
+
+  /** One in-world day, midnight to midnight, with the markers a GM can set the clock from. */
+  #timeline(date: WorldDate, isGM: boolean): HTMLElement {
+    const layout = timelineLayout(date, getLatitude());
+    const container = element("div", "kronos-timeline");
+
+    if (isGM) {
+      const markers = element("div", "kronos-markers");
+      for (const entry of layout.markers) {
+        const marker = button(entry.icon, "set-time", t(entry.tooltip), {
+          minutes: String(entry.minutes),
+        });
+        marker.classList.add("kronos-marker");
+        marker.style.left = `${entry.percent}%`;
+        markers.append(marker);
       }
-      root.append(label, temperature);
+      container.append(markers);
     }
 
-    if (!game.user.isGM) return root;
+    const track = element("div", "kronos-track");
+    // A player's timeline reports the time; only a GM's sets it. The absent action is also what
+    // keeps the panel-drag handler from treating the track as a control.
+    if (isGM) {
+      track.dataset["action"] = "timeline";
+      track.title = t("KRONOS.Action.Timeline");
+    }
 
-    const separator = document.createElement("span");
-    separator.className = "kronos-separator";
-    root.append(separator);
+    const handle = element("div", "kronos-handle");
+    handle.style.left = `${layout.percent}%`;
+    track.append(handle);
+
+    const labels = element("div", "kronos-labels");
+    for (const entry of layout.markers) {
+      const label = element("span", "kronos-label", entry.label);
+      label.style.left = `${entry.percent}%`;
+      labels.append(label);
+    }
+
+    container.append(track, labels);
+    return container;
+  }
+
+  #controls(date: WorldDate, isGM: boolean): HTMLElement {
+    const row = element("div", "kronos-controls");
+    row.append(this.#clock(date), this.#date(date));
+
+    if (isWeatherEnabled()) row.append(this.#weather(date, isGM));
+    if (isGM) row.append(this.#timeControls());
+
+    return row;
+  }
+
+  #clock(date: WorldDate): HTMLElement {
+    const block = element("div", "kronos-clock");
+    block.append(
+      element("div", "kronos-time", `${pad(date.hour)}:${pad(date.minute)}`),
+      element("div", "kronos-seconds", `${pad(date.second)}s`),
+    );
+    return block;
+  }
+
+  #date(date: WorldDate): HTMLElement {
+    const block = element("div", "kronos-date");
+    block.append(
+      element("div", "kronos-weekday", date.weekdayName),
+      element("div", "kronos-datum", `${pad(date.day)} ${date.monthName} (${date.year})`),
+    );
+    block.lastElementChild?.setAttribute("title", date.era);
+
+    const tags = element("div", "kronos-tags");
+    tags.append(element("span", "kronos-tag kronos-tag-season", t(`KRONOS.Season.${date.season}`)));
+
+    // A holy day is worth saying out loud, and only the calendar knows which days those are.
+    if (date.festival) {
+      const festival = element("span", "kronos-tag kronos-tag-festival", date.festival);
+      festival.prepend(icon(ICON.festival));
+      festival.title = t("KRONOS.Festival");
+      tags.append(festival);
+    }
+
+    block.append(tags);
+    return block;
+  }
+
+  #weather(date: WorldDate, isGM: boolean): HTMLElement {
+    const weather = weatherFor(date);
+    const daylight = isDaylight(date.dayOfYear, getLatitude(), date.hour * 60 + date.minute);
+
+    const block = element("div", "kronos-weather");
+    block.append(icon(weatherIcon(weather.condition, daylight)));
+
+    const readout = element("div", "kronos-weather-readout");
+    readout.append(
+      element("strong", "kronos-temp", `${temperatureAt(date.hour, date.minute, weather)}°C`),
+      element("div", "kronos-condition", t(`KRONOS.Weather.${weather.condition}`)),
+    );
+    block.append(readout);
+
+    if (isGM) {
+      block.classList.add("kronos-clickable");
+      block.dataset["action"] = "override-weather";
+      block.title = t("KRONOS.Action.OverrideWeather");
+    }
+
+    return block;
+  }
+
+  #timeControls(): HTMLElement {
+    const panel = element("div", "kronos-time-controls");
 
     const halt = haltReason();
     const running = isClockRunning();
     const pause = button(
-      running ? "⏸" : "▶",
+      running ? ICON.pause : ICON.run,
       "toggle-clock",
       running && halt !== null && halt !== "paused"
         ? t(`KRONOS.Clock.Halted.${halt}`)
@@ -126,18 +228,21 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
     );
     pause.classList.toggle("kronos-active", running && halt === null);
     pause.classList.toggle("kronos-stalled", running && halt !== null);
-    root.append(pause);
+    panel.append(pause);
 
     const multiplier = getStepMultiplier();
-    root.append(
-      button("⏪", "step", t("KRONOS.Action.StepBackMany"), { count: String(-multiplier) }),
-      button("◀", "step", t("KRONOS.Action.StepBackOne"), { count: "-1" }),
-      button("🌅", "jump", t("KRONOS.Action.Sunrise"), { target: "sunrise" }),
-      button("☀", "jump", t("KRONOS.Action.Noon"), { target: "noon" }),
-    );
+    const back = button(ICON.stepBackMany, "step", t("KRONOS.Action.StepBackMany"), {
+      count: String(-multiplier),
+    });
+    const forward = button(ICON.stepForwardMany, "step", t("KRONOS.Action.StepForwardMany"), {
+      count: String(multiplier),
+    });
+    // Hidden when the panel is collapsed, which is what the design drops first.
+    for (const button of [back, forward]) button.classList.add("kronos-long-step");
 
-    const select = document.createElement("select");
-    select.className = "kronos-unit";
+    panel.append(back, button(ICON.stepBackOne, "step", t("KRONOS.Action.StepBackOne"), { count: "-1" }));
+
+    const select = element("select", "kronos-unit");
     select.dataset["action"] = "set-unit";
     select.title = t("KRONOS.Action.StepUnit");
     const unit = getStepUnit();
@@ -148,16 +253,15 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
       el.selected = option === unit;
       select.append(el);
     }
-    root.append(select);
+    panel.append(select);
 
-    root.append(
-      button("🌇", "jump", t("KRONOS.Action.Sunset"), { target: "sunset" }),
-      button("🌙", "jump", t("KRONOS.Action.Midnight"), { target: "midnight" }),
-      button("▶", "step", t("KRONOS.Action.StepForwardOne"), { count: "1" }),
-      button("⏩", "step", t("KRONOS.Action.StepForwardMany"), { count: String(multiplier) }),
-    );
+    panel.append(button(ICON.stepForwardOne, "step", t("KRONOS.Action.StepForwardOne"), { count: "1" }), forward);
 
-    return root;
+    const settings = button(ICON.settings, "open-settings", t("KRONOS.Action.Settings"));
+    settings.classList.add("kronos-settings");
+    panel.append(settings);
+
+    return panel;
   }
 
   protected override _replaceHTML(result: HTMLElement, content: HTMLElement): void {
@@ -180,7 +284,7 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
   }
 
   #applyStoredPosition(element: HTMLElement): void {
-    // A re-render mid-drag must not yank the bar back to its last saved spot.
+    // A re-render mid-drag must not yank the panel back to its last saved spot.
     if (this.#dragOffset) return;
 
     const stored = getBarPosition();
@@ -202,6 +306,10 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
 
     const date = getWorldDate();
     switch (target.dataset["action"]) {
+      case "toggle-compact":
+        await setBarCompact(!isBarCompact());
+        await this.render();
+        break;
       case "toggle-clock":
         await setClockRunning(!isClockRunning());
         break;
@@ -210,16 +318,27 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
         await advance(stepSeconds(getStepUnit(), count, date.worldTime));
         break;
       }
-      case "jump": {
-        const jump = target.dataset["target"] as JumpTarget | undefined;
-        if (!jump) break;
-        await advance(secondsToTimeOfDay(date.worldTime, targetMinutes(jump, date)));
+      case "set-time": {
+        const minutes = Number(target.dataset["minutes"]);
+        if (Number.isFinite(minutes)) await advance(secondsToTimeOfDay(date.worldTime, minutes));
         break;
       }
       case "override-weather":
         await openWeatherOverride(date);
         break;
+      case "open-settings":
+        this.#openSettings();
+        break;
     }
+  }
+
+  #openSettings(): void {
+    const sheet = game.settings.sheet;
+    if (!sheet) {
+      console.error(`${MODULE_ID} | the settings application is unavailable`);
+      return;
+    }
+    sheet.render(true);
   }
 
   async #onChange(event: Event): Promise<void> {
@@ -229,7 +348,7 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
     if (isStepUnit(value)) await setStepUnit(value as StepUnit);
   }
 
-  /** Dragging moves the bar; the controls inside it must still be clickable. */
+  /** Dragging moves the panel; the controls inside it must still be clickable. */
   #onPointerDown(event: PointerEvent): void {
     const target = event.target as HTMLElement | null;
     if (target?.closest("button, select, [data-action]")) return;

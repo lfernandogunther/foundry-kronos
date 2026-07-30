@@ -48,12 +48,18 @@ const CONDITION_SYMBOLS: Readonly<Record<WeatherCondition, SymbolName>> = {
 };
 
 /**
- * The icon for a condition, given whether the sun is up.
+ * The two conditions whose glyph draws the sun, and so cannot be shown after dark.
  *
- * A clear sky is the only condition that reads differently after dark — a sun drawn at midnight is
- * simply wrong, while rain and snow look the same whatever the hour.
+ * Rain and snow look the same at every hour; a sun, or a cloud with a sun behind it, does not — at
+ * ten in the evening it is simply wrong.
  */
+const NIGHT_SYMBOLS: Readonly<Partial<Record<WeatherCondition, SymbolName>>> = {
+  clear: "bedtime",
+  cloudy: "partly_cloudy_night",
+};
+
+/** The icon for a condition, given whether the sun is up. */
 export function weatherIcon(condition: WeatherCondition, daylight: boolean): string {
-  if (condition === "clear" && !daylight) return glyph("bedtime");
-  return glyph(CONDITION_SYMBOLS[condition]);
+  const night = daylight ? undefined : NIGHT_SYMBOLS[condition];
+  return glyph(night ?? CONDITION_SYMBOLS[condition]);
 }

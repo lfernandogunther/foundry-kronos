@@ -1,7 +1,14 @@
-/* The bar is a single dark pill floating over the canvas, matching the supplied design. */
+/*
+ * The panel: a dark card floating over the canvas, carrying a day-long timeline above the readouts
+ * and the time controls.
+ *
+ * Every rule is scoped to `#foundry-kronos`. The design this is taken from is a standalone page and
+ * styles `*` and `body`; this is a module living inside someone else's application, and must not
+ * restyle a single element it does not own.
+ */
 
 /*
- * A 19-glyph subset of Material Symbols Outlined, bundled rather than fetched: a world with no
+ * A twenty-glyph subset of Material Symbols Outlined, bundled rather than fetched: a world with no
  * internet, or a locked-down one, would otherwise draw no icons at all.
  *
  * Named for this module and not for the font it is cut from. Another module fetching the real
@@ -18,6 +25,55 @@
   src: url("./fonts/kronos-symbols.woff2") format("woff2");
 }
 
+#foundry-kronos {
+  --kronos-card-bg: #0f1318;
+  --kronos-card-border: #1d242e;
+  --kronos-gold: #e5a93c;
+  --kronos-text: #d1d5db;
+  --kronos-muted: #6b7280;
+  --kronos-control-bg: #171d26;
+  --kronos-control-hover: #222a37;
+  --kronos-inset: #080a0c;
+
+  z-index: 60;
+  pointer-events: auto;
+}
+
+#foundry-kronos .kronos-wrapper,
+#foundry-kronos .kronos-wrapper * {
+  box-sizing: border-box;
+}
+
+#foundry-kronos .kronos-wrapper {
+  position: relative;
+  width: 880px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  color: var(--kronos-text);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.2;
+
+  /* Dragging the panel should not select its text. */
+  user-select: none;
+}
+
+#foundry-kronos .kronos-panel {
+  position: relative;
+  width: 100%;
+  padding: 22px 20px;
+
+  background: var(--kronos-card-bg);
+  border: 1px solid var(--kronos-card-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgb(0 0 0 / 60%);
+
+  cursor: grab;
+}
+
+#foundry-kronos .kronos-panel:active {
+  cursor: grabbing;
+}
+
 #foundry-kronos .kronos-icon {
   font-family: "Kronos Symbols", sans-serif;
   font-size: 1.2rem;
@@ -31,120 +87,362 @@
   -webkit-font-smoothing: antialiased;
 }
 
-#foundry-kronos {
-  z-index: 60;
-  pointer-events: auto;
-}
-
-#foundry-kronos .kronos-root {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-
-  padding: 0.5rem 1.4rem;
-  border-radius: 999px;
-
-  background: rgb(45 36 38 / 96%);
-  border: 1px solid rgb(0 0 0 / 45%);
-  box-shadow: 0 3px 12px rgb(0 0 0 / 45%);
-
-  color: #f4f0ee;
-  font-family: var(--font-primary, sans-serif);
-  font-size: 1.15rem;
-  font-weight: 600;
-  line-height: 1;
-  white-space: nowrap;
-
-  /* Dragging the bar should not select its text. */
-  user-select: none;
-  cursor: grab;
-}
-
-#foundry-kronos .kronos-root:active {
-  cursor: grabbing;
-}
-
-#foundry-kronos .kronos-readout {
-  display: inline-flex;
-  align-items: center;
-}
-
-#foundry-kronos .kronos-season {
-  font-size: 1.35rem;
-}
-
-#foundry-kronos .kronos-year,
-#foundry-kronos .kronos-time {
-  font-variant-numeric: tabular-nums;
-}
-
-/* Set apart from the date it belongs to, since it appears on a handful of days a year. */
-#foundry-kronos .kronos-festival {
-  color: #e8c66a;
-  font-style: italic;
-}
-
-#foundry-kronos .kronos-temp {
-  min-width: 2.4rem;
-  font-variant-numeric: tabular-nums;
-}
-
-#foundry-kronos .kronos-clickable {
-  cursor: pointer;
-}
-
-#foundry-kronos .kronos-separator {
-  width: 1px;
-  height: 1.4rem;
-  margin: 0 0.35rem;
-  background: rgb(255 255 255 / 35%);
-}
-
+/* Every control starts from here; the variants below add their own look and their own hover. */
 #foundry-kronos .kronos-button {
   all: unset;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  width: 1.9rem;
-  height: 1.9rem;
-  border-radius: 50%;
-
-  color: inherit;
-  font-size: 1.05rem;
   cursor: pointer;
 }
 
-/* No hover state on the controls by request — the bar sits over the canvas and the highlight
-   read as a distraction. `cursor: pointer` still marks them as interactive. */
+/* --- The collapse tab, clear of the panel's right border ------------------------------------ */
 
-#foundry-kronos .kronos-button.kronos-active {
-  color: #8fe08f;
+#foundry-kronos .kronos-tab {
+  position: absolute;
+  top: 18px;
+  right: -24px;
+  z-index: 10;
+
+  width: 24px;
+  height: 44px;
+
+  background: var(--kronos-card-bg);
+  border: 1px solid var(--kronos-card-border);
+  border-left: none;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+  box-shadow: 4px 2px 8px rgb(0 0 0 / 40%);
+
+  color: var(--kronos-muted);
+  transition: color 0.2s, background 0.2s;
+}
+
+#foundry-kronos .kronos-tab:hover {
+  color: var(--kronos-gold);
+  background: var(--kronos-control-hover);
+}
+
+/* --- The timeline: one in-world day ---------------------------------------------------------- */
+
+#foundry-kronos .kronos-timeline {
+  position: relative;
+  margin: 30px 15px;
+}
+
+#foundry-kronos .kronos-markers {
+  position: absolute;
+  top: -26px;
+  left: 0;
+  width: 100%;
+  height: 20px;
+}
+
+#foundry-kronos .kronos-marker {
+  position: absolute;
+  transform: translateX(-50%);
+  color: var(--kronos-muted);
+  transition: color 0.2s, transform 0.2s;
+}
+
+#foundry-kronos .kronos-marker:hover {
+  color: var(--kronos-gold);
+  transform: translateX(-50%) scale(1.2);
+}
+
+#foundry-kronos .kronos-track {
+  position: relative;
+  height: 10px;
+
+  /* Night at both ends, twilight either side, daylight through the middle. */
+  background: linear-gradient(90deg, #05080c 0%, #2a3d1c 25%, #8a7a3b 50%, #2a3d1c 75%, #05080c 100%);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 5px;
+}
+
+/* Only a GM's track carries an action, and only theirs is interactive. */
+#foundry-kronos .kronos-track[data-action] {
+  cursor: pointer;
+}
+
+#foundry-kronos .kronos-handle {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+
+  width: 18px;
+  height: 18px;
+
+  background: var(--kronos-gold);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 12px var(--kronos-gold);
+
+  transition: transform 0.1s ease;
+}
+
+#foundry-kronos .kronos-track[data-action] .kronos-handle {
+  cursor: grab;
+}
+
+#foundry-kronos .kronos-labels {
+  position: relative;
+  width: 100%;
+  height: 18px;
+  margin-top: 8px;
+}
+
+#foundry-kronos .kronos-label {
+  position: absolute;
+  transform: translateX(-50%);
+  font-family: monospace;
+  font-size: 0.7rem;
+  color: var(--kronos-muted);
+}
+
+/* --- The readout row ------------------------------------------------------------------------- */
+
+/*
+ * The design lays this out as a four-column grid whose third column is `1fr`. Flex reaches the same
+ * result and survives the blocks being conditional: with the weather hidden, or the controls absent
+ * for a player, a fixed grid would leave an empty column where the missing block was.
+ */
+#foundry-kronos .kronos-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 12px 16px;
+  background: rgb(0 0 0 / 25%);
+  border: 1px solid rgb(255 255 255 / 3%);
+  border-radius: 8px;
+}
+
+/* Sized to their content, like the `auto` columns of the grid the design uses. */
+#foundry-kronos .kronos-clock,
+#foundry-kronos .kronos-date,
+#foundry-kronos .kronos-weather {
+  flex: 0 0 auto;
+}
+
+#foundry-kronos .kronos-clock,
+#foundry-kronos .kronos-date {
+  padding-right: 16px;
+  border-right: 1px solid var(--kronos-card-border);
+}
+
+#foundry-kronos .kronos-time {
+  font-family: monospace;
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kronos-gold);
+  font-variant-numeric: tabular-nums;
+}
+
+#foundry-kronos .kronos-seconds {
+  font-size: 0.7rem;
+  color: var(--kronos-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+#foundry-kronos .kronos-weekday {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--kronos-gold);
+}
+
+#foundry-kronos .kronos-datum {
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #fff;
+
+  /* One line, as the design has it: the date reflowing under itself reads as a layout fault. */
+  white-space: nowrap;
+}
+
+#foundry-kronos .kronos-tags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+#foundry-kronos .kronos-tag {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+#foundry-kronos .kronos-tag-season {
+  background: rgb(229 169 60 / 15%);
+  border: 1px solid rgb(229 169 60 / 30%);
+  color: var(--kronos-gold);
+}
+
+/* Set apart from the season it sits beside, since it appears on a handful of days a year. */
+#foundry-kronos .kronos-tag-festival {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+
+  background: rgb(184 80 40 / 20%);
+  border: 1px solid rgb(184 80 40 / 40%);
+  color: #e67e22;
+}
+
+#foundry-kronos .kronos-tag-festival .kronos-icon {
+  font-size: 0.85rem;
+}
+
+/* --- Weather ---------------------------------------------------------------------------------- */
+
+#foundry-kronos .kronos-weather {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+
+  padding: 6px 12px;
+  background: var(--kronos-control-bg);
+  border: 1px solid transparent;
+  border-radius: 6px;
+
+  font-size: 0.8rem;
+  transition: 0.2s;
+}
+
+#foundry-kronos .kronos-weather.kronos-clickable {
+  cursor: pointer;
+}
+
+#foundry-kronos .kronos-weather.kronos-clickable:hover {
+  background: var(--kronos-control-hover);
+  border-color: var(--kronos-gold);
+}
+
+#foundry-kronos .kronos-temp {
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+#foundry-kronos .kronos-condition {
+  font-size: 0.7rem;
+  color: var(--kronos-muted);
+}
+
+/* --- Time controls ---------------------------------------------------------------------------- */
+
+/* `margin-left: auto` is the flex equivalent of the design's `1fr` third column. */
+#foundry-kronos .kronos-time-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+
+  padding: 4px 6px;
+  background: var(--kronos-control-bg);
+  border: 1px solid var(--kronos-card-border);
+  border-radius: 6px;
+}
+
+#foundry-kronos .kronos-time-controls .kronos-button {
+  padding: 6px;
+  border-radius: 4px;
+  color: var(--kronos-text);
+  transition: 0.2s;
+}
+
+#foundry-kronos .kronos-time-controls .kronos-button:hover {
+  background: var(--kronos-control-hover);
+  color: var(--kronos-gold);
+}
+
+#foundry-kronos .kronos-time-controls .kronos-button.kronos-active {
+  background: rgb(229 169 60 / 15%);
+  color: var(--kronos-gold);
 }
 
 /* The clock is switched on but something outside it is holding time still. */
-#foundry-kronos .kronos-button.kronos-stalled {
+#foundry-kronos .kronos-time-controls .kronos-button.kronos-stalled {
   color: #e0b34f;
 }
 
+#foundry-kronos .kronos-settings {
+  margin-left: 4px;
+  padding-left: 8px;
+  border-left: 1px solid var(--kronos-card-border);
+  color: var(--kronos-gold);
+}
+
 #foundry-kronos .kronos-unit {
-  height: 1.9rem;
-  padding: 0 0.4rem;
+  height: auto;
+  margin: 0 4px;
+  padding: 4px 8px;
 
-  background: rgb(255 255 255 / 10%);
-  border: none;
-  border-radius: 0.4rem;
+  background: var(--kronos-inset);
+  border: 1px solid var(--kronos-card-border);
+  border-radius: 4px;
+  outline: none;
 
-  color: inherit;
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--kronos-gold);
   cursor: pointer;
 }
 
 #foundry-kronos .kronos-unit option {
-  color: initial;
+  background: var(--kronos-card-bg);
+  color: var(--kronos-text);
 }
+
+/* --- Collapsed -------------------------------------------------------------------------------- */
+
+#foundry-kronos .kronos-wrapper.kronos-compact {
+  width: 520px;
+}
+
+#foundry-kronos .kronos-compact .kronos-timeline,
+#foundry-kronos .kronos-compact .kronos-tags,
+#foundry-kronos .kronos-compact .kronos-weather,
+#foundry-kronos .kronos-compact .kronos-long-step,
+#foundry-kronos .kronos-compact .kronos-seconds {
+  display: none;
+}
+
+#foundry-kronos .kronos-compact .kronos-panel {
+  padding: 12px 14px;
+}
+
+#foundry-kronos .kronos-compact .kronos-controls {
+  gap: 10px;
+  padding: 6px 10px;
+}
+
+#foundry-kronos .kronos-compact .kronos-time {
+  font-size: 1.6rem;
+}
+
+#foundry-kronos .kronos-compact .kronos-datum {
+  font-size: 0.95rem;
+}
+
+/* Kept usable at the smaller size: the unit is what the remaining arrows move by. */
+#foundry-kronos .kronos-compact .kronos-unit {
+  padding: 2px 4px;
+  font-size: 0.7rem;
+}
+
+/* --- The weather override dialog, which renders outside the panel ---------------------------- */
 
 .kronos-override .form-group {
   display: flex;

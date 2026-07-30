@@ -51,9 +51,15 @@ describe("the icon table", () => {
     }
   });
 
-  it("draws a clear sky differently after dark, and everything else the same", () => {
-    expect(weatherIcon("clear", false)).not.toBe(weatherIcon("clear", true));
-    for (const condition of WEATHER_CONDITIONS.filter((c) => c !== "clear")) {
+  it("draws the conditions whose glyph carries a sun differently after dark", () => {
+    // A sun, or a cloud with a sun behind it, cannot be shown at ten in the evening. Rain and snow
+    // look the same at every hour, and swapping those would be noise.
+    const nocturnal = ["clear", "cloudy"] as const;
+
+    for (const condition of nocturnal) {
+      expect(weatherIcon(condition, false), condition).not.toBe(weatherIcon(condition, true));
+    }
+    for (const condition of WEATHER_CONDITIONS.filter((c) => !(nocturnal as readonly string[]).includes(c))) {
       expect(weatherIcon(condition, false), condition).toBe(weatherIcon(condition, true));
     }
   });
@@ -73,7 +79,7 @@ describe("the bundled font", () => {
 
   it("is named for this module rather than for the font it is cut from", () => {
     // A subset registered as "Material Symbols Outlined" would shadow the real font for any other
-    // module that loads it, leaving that module with only our nineteen glyphs.
+    // module that loads it, leaving that module with only our twenty glyphs.
     const family = /@font-face\s*\{[^}]*font-family:\s*["']([^"']+)["']/.exec(css)?.[1];
     expect(family).toBe("Kronos Symbols");
   });

@@ -22,7 +22,7 @@ styling are reproduced rather than approximated.
 | Question | Decision |
 | --- | --- |
 | Scope | The card, the timeline, the four blocks, the control panel, the collapse tab. **Not** the month grid, the day notes, or the calendar wizard |
-| Icons | **Material Symbols, bundled.** A 2.3 KB subset of the nineteen glyphs used, committed to the repo. No network fetch at runtime |
+| Icons | **Material Symbols, bundled.** A 2.3 KB subset of the twenty glyphs used, committed to the repo. No network fetch at runtime |
 | Icon addressing | By private-use codepoint, not by ligature name — a codepoint subset carries no ligature table |
 | Players | Readout blocks and the timeline, the handle showing where in the day the sun is. No marker buttons, no drag, no control panel, no gear |
 | Timeline semantics | **Sets the time inside the current day, and may rewind.** Both the handle and the five markers |

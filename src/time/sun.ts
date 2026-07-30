@@ -56,6 +56,19 @@ export function solarEvents(dayOfYear: number, latitudeDeg: number): SolarEvents
   };
 }
 
+/**
+ * Whether the sun is above the horizon at `minutes` past midnight.
+ *
+ * The panel draws a clear sky differently after dark, and "after dark" has to follow the same
+ * seasonal sunrise and sunset the rest of the module does — a fixed pair of hours would show a sun
+ * at nine in the evening in midwinter.
+ */
+export function isDaylight(dayOfYear: number, latitudeDeg: number, minutes: number): boolean {
+  const { sunrise, sunset, polar } = solarEvents(dayOfYear, latitudeDeg);
+  if (polar !== null) return polar === "day";
+  return minutes >= sunrise && minutes < sunset;
+}
+
 /** Daylight length in minutes, for weather and temperature shaping. */
 export function daylightMinutes(dayOfYear: number, latitudeDeg: number): number {
   const { sunrise, sunset } = solarEvents(dayOfYear, latitudeDeg);

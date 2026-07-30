@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import en from "../lang/en.json" with { type: "json" };
-import { SEASON_ICONS } from "../src/time/season.js";
+import { SEASONS } from "../src/time/season.js";
 import { STEP_UNITS } from "../src/time/units.js";
 import { WEATHER_CONDITIONS } from "../src/weather/generator.js";
 
@@ -44,7 +44,7 @@ describe("translation keys", () => {
   });
 
   it("has a translation for every season", () => {
-    for (const season of Object.keys(SEASON_ICONS)) {
+    for (const season of SEASONS) {
       expect(known).toContain(`${PREFIX}.Season.${season}`);
     }
   });
@@ -71,7 +71,7 @@ describe("translation keys", () => {
 
   it("has no translations that nothing uses", () => {
     const used = new Set(staticKeys().keys());
-    for (const season of Object.keys(SEASON_ICONS)) used.add(`${PREFIX}.Season.${season}`);
+    for (const season of SEASONS) used.add(`${PREFIX}.Season.${season}`);
     for (const condition of WEATHER_CONDITIONS) used.add(`${PREFIX}.Weather.${condition}`);
     for (const unit of STEP_UNITS) used.add(`${PREFIX}.Unit.${unit}`);
     for (const reason of ["no-active-gm", "game-paused", "combat"]) used.add(`${PREFIX}.Clock.Halted.${reason}`);
