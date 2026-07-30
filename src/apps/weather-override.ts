@@ -101,6 +101,9 @@ export async function openWeatherOverride(date: WorldDate): Promise<void> {
   // the dialog without running any of our callbacks — so it silently discards the form.
   await dialog.wait({
     window: { title: t("KRONOS.Override.Title") },
+    // The dialog renders outside the panel, so the stylesheet cannot reach it through
+    // `#foundry-kronos`. This class is the hook that gives it the panel's look.
+    classes: ["kronos-modal"],
     content,
     buttons,
     rejectClose: false,

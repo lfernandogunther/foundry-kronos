@@ -34,7 +34,7 @@ stylesheet without the markup, leaves the panel broken on the branch.
       reference's compact rules: narrower panel, timeline, tags, weather, seconds and outer arrows
       hidden, the unit select kept
 
-- [ ] **6. Weather and the override dialog** — the condition icon and temperature in the reference's
+- [x] **6. Weather and the override dialog** — the condition icon and temperature in the reference's
       weather block, and `kronos-modal` on the override dialog so its styling reaches the reference's
       modal look. No change to what the dialog does
 

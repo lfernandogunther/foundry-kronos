@@ -447,6 +447,96 @@
 
 /* --- The weather override dialog, which renders outside the panel ---------------------------- */
 
+/*
+ * Not scoped to `#foundry-kronos`: the dialog is a separate application, so `.kronos-modal` on its
+ * root is the only handle available. Every rule below is qualified by it, so nothing here can reach
+ * another dialog.
+ *
+ * The element names are Foundry's own — `window-header`, `window-title`, `window-content` — and the
+ * button is matched on the action this module gives it rather than on a framework class, which is
+ * the part least likely to move between releases.
+ */
+.kronos-modal {
+  --kronos-card-bg: #0f1318;
+  --kronos-card-border: #1d242e;
+  --kronos-gold: #e5a93c;
+  --kronos-gold-dark: #b88228;
+  --kronos-text: #d1d5db;
+  --kronos-muted: #6b7280;
+  --kronos-inset: #080a0c;
+
+  background: var(--kronos-card-bg);
+  border: 1px solid var(--kronos-card-border);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 80%);
+  color: var(--kronos-text);
+}
+
+.kronos-modal .window-header {
+  background: transparent;
+  border-bottom: 1px solid var(--kronos-card-border);
+}
+
+.kronos-modal .window-title {
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--kronos-gold);
+}
+
+.kronos-modal .window-content {
+  background: transparent;
+  color: var(--kronos-text);
+}
+
+.kronos-modal label {
+  font-size: 0.75rem;
+  color: var(--kronos-muted);
+}
+
+.kronos-modal input,
+.kronos-modal select {
+  padding: 8px 10px;
+  background: var(--kronos-inset);
+  border: 1px solid var(--kronos-card-border);
+  border-radius: 6px;
+  outline: none;
+  font-size: 0.85rem;
+  color: #fff;
+}
+
+.kronos-modal .notes {
+  font-size: 0.75rem;
+  color: var(--kronos-muted);
+}
+
+.kronos-modal button {
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid var(--kronos-card-border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--kronos-text);
+  cursor: pointer;
+}
+
+.kronos-modal button:hover {
+  background: var(--kronos-card-border);
+}
+
+/* The one that commits the change, matched on the action this module gives it. */
+.kronos-modal button[data-action="save"] {
+  background: var(--kronos-gold);
+  border-color: var(--kronos-gold);
+  font-weight: 700;
+  color: #111;
+}
+
+.kronos-modal button[data-action="save"]:hover {
+  background: var(--kronos-gold-dark);
+  border-color: var(--kronos-gold-dark);
+}
+
 .kronos-override .form-group {
   display: flex;
   align-items: center;

@@ -105,6 +105,10 @@ date, the inner arrows and the unit select stay. The choice is remembered per cl
   timeline does not move the panel.
 - `npm run check` passes.
 
+The one thing no check here can settle is the override dialog's look. It is a separate application, so
+its styling hangs off Foundry's own `window-header` / `window-title` / `window-content` element names,
+and only a running world shows whether those rules land. It is on the verification list.
+
 ## Edge cases
 
 - **Polar latitudes.** `solarEvents` returns nominal times with `polar` set when the sun never
@@ -115,8 +119,9 @@ date, the inner arrows and the unit select stay. The choice is remembered per cl
 - **Weather off.** The weather block is absent, and the controls grid closes over the gap rather than
   leaving a hole.
 - **No festival.** The second tag is absent, not empty.
-- **Long month or weekday names.** The date block grows; the panel has a fixed width, so the name is
-  allowed to wrap rather than to widen the card.
+- **Long month or weekday names.** The date line does not wrap — reflowing under itself reads as a
+  layout fault, and the design keeps it on one line. The blocks size to their content, so a very long
+  name pushes the row rather than reflowing it.
 - **Compact and player at once.** A player's panel has no control panel, so compact leaves the time
   and date only.
 - **The font failing to load.** Icons show as the browser's missing-glyph box. Every control keeps
