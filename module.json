@@ -2,10 +2,10 @@
   "id": "foundry-kronos",
   "title": "Kronos",
   "description": "A floating panel showing the in-world season, date, time, weather and temperature on a day-long timeline, with GM controls to move time. Keeps Golarion in step with the Pathfinder 2e World Clock, or reckons in a calendar with months of its own.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "url": "https://github.com/lfernandogunther/foundry-kronos",
   "manifest": "https://github.com/lfernandogunther/foundry-kronos/releases/latest/download/module.json",
-  "download": "https://github.com/lfernandogunther/foundry-kronos/releases/download/v0.4.0/foundry-kronos.zip",
+  "download": "https://github.com/lfernandogunther/foundry-kronos/releases/download/v0.5.0/foundry-kronos.zip",
   "compatibility": {
     "minimum": "14",
     "verified": "14.359"

@@ -1,6 +1,6 @@
 {
   "name": "foundry-kronos",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "description": "Foundry VTT v14 calendar, time and weather toolbar for Pathfinder 2e",
