@@ -19,6 +19,9 @@ import { all, one, renderPanel } from "../helpers/panel.js";
 /** Late evening on 1 January of the stub world's first year. */
 const EVENING = 79_200;
 
+/** A world time from a real date. The stub world is created at the Unix epoch. */
+const at = (y: number, m: number, d: number, h = 0): number => Date.UTC(y, m - 1, d, h) / 1000;
+
 describe("what a player is shown", () => {
   it("has no timeline at all, and still has the row", async () => {
     const panel = await renderPanel({ isGM: false, worldTime: EVENING });
@@ -118,6 +121,75 @@ describe("the handle", () => {
 
     const noon = one(await renderPanel({ worldTime: 43_200 }), ".kronos-handle");
     expect(noon?.style.left).toBe("50%");
+  });
+});
+
+describe("the month grid", () => {
+  it("is closed until it is opened, and a player has no way to open it", async () => {
+    expect(one(await renderPanel({}), ".kronos-grid")).toBeNull();
+    expect(one(await renderPanel({}), '[data-action="toggle-grid"]')).not.toBeNull();
+
+    const player = await renderPanel({ isGM: false });
+    expect(one(player, ".kronos-grid")).toBeNull();
+    expect(one(player, '[data-action="toggle-grid"]')).toBeNull();
+
+    // Asked for open, and still absent. Without this the assertion above passes for the wrong
+    // reason: a player's grid is closed by default, so it would be missing either way.
+    const openedForPlayer = await renderPanel({ isGM: false, grid: true, worldTime: at(2025, 12, 8) });
+    expect(one(openedForPlayer, ".kronos-grid")).toBeNull();
+    expect(all(openedForPlayer, ".kronos-grid-day")).toHaveLength(0);
+  });
+
+  it("never lets a day cell carry an action that moves time", async () => {
+    // The decision this round turns on. The way it regresses is somebody wiring a cell to `set-time`
+    // or `step`, both of which already exist a few lines away in the same file.
+    const panel = await renderPanel({ grid: true, worldTime: at(2025, 12, 8) });
+    const cells = all(panel, ".kronos-grid-day");
+
+    expect(cells.length).toBeGreaterThan(27);
+    for (const cell of cells) {
+      expect(cell.dataset["action"], cell.outerHTML).toBe("select-day");
+    }
+
+    // And nothing inside the grid moves time until a day is picked.
+    const movers = all(panel, ".kronos-grid [data-action]").map((el) => el.dataset["action"]);
+    expect([...new Set(movers)].sort()).toEqual(["month", "select-day"]);
+  });
+
+  it("puts day 1 under its own weekday, with blanks before it", async () => {
+    // 1 December 2025 was a Monday, the first weekday, so the row starts full.
+    const december = await renderPanel({ grid: true, worldTime: at(2025, 12, 8) });
+    expect(all(december, ".kronos-grid-blank")).toHaveLength(0);
+    expect(all(december, ".kronos-grid-weekday")).toHaveLength(7);
+    expect(all(december, ".kronos-grid-day")).toHaveLength(31);
+
+    // 1 January 2026 was a Thursday, which is index 3, so three cells come before it.
+    const january = await renderPanel({ grid: true, worldTime: at(2026, 1, 1) });
+    expect(all(january, ".kronos-grid-blank")).toHaveLength(3);
+  });
+
+  it("marks today, once", async () => {
+    const panel = await renderPanel({ grid: true, worldTime: at(2025, 12, 8, 22) });
+    const today = all(panel, ".kronos-grid-day.kronos-today");
+    expect(today).toHaveLength(1);
+    expect(today[0]?.dataset["day"]).toBe("8");
+  });
+
+  it("offers the control that moves the clock only on the picked day", async () => {
+    const none = await renderPanel({ grid: true, worldTime: at(2025, 12, 8) });
+    expect(all(none, '[data-action="go-to-day"]')).toHaveLength(0);
+
+    const picked = await renderPanel({ grid: true, selectedDay: 20, worldTime: at(2025, 12, 8) });
+    const go = all(picked, '[data-action="go-to-day"]');
+    expect(go).toHaveLength(1);
+    expect(go[0]?.dataset["day"]).toBe("20");
+    expect(go[0]?.closest<HTMLElement>(".kronos-grid-day")?.dataset["day"]).toBe("20");
+  });
+
+  it("names the picked day in the heading, with its festival", async () => {
+    const anchor = Date.parse("2025-01-05T12:00:00Z") / 1000;
+    const picked = await renderPanel({ calendar: "tarlan", grid: true, selectedDay: 1, worldTime: anchor });
+    expect(one(picked, ".kronos-grid-heading")?.textContent).toContain("Renewal");
   });
 });
 

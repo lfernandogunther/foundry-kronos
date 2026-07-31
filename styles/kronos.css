@@ -125,6 +125,17 @@
   --kronos-settings-gap: 4px;
   --kronos-settings-padding: 8px;
 
+  --kronos-grid-top: 16px;
+  --kronos-grid-padding: 16px;
+  --kronos-grid-gap: 6px;
+  --kronos-grid-radius: 8px;
+  --kronos-grid-cell-height: 55px;
+  --kronos-grid-cell-padding: 6px;
+  --kronos-grid-cell-radius: 6px;
+  --kronos-grid-heading-size: 1rem;
+  --kronos-grid-weekday-size: 0.75rem;
+  --kronos-grid-number-size: 0.85rem;
+
   position: relative;
   width: var(--kronos-width);
 
@@ -220,6 +231,17 @@
   --kronos-unit-margin: 3px;
   --kronos-settings-gap: 3px;
   --kronos-settings-padding: 6px;
+
+  --kronos-grid-top: 12px;
+  --kronos-grid-padding: 12px;
+  --kronos-grid-gap: 5px;
+  --kronos-grid-radius: 7px;
+  --kronos-grid-cell-height: 44px;
+  --kronos-grid-cell-padding: 5px;
+  --kronos-grid-cell-radius: 5px;
+  --kronos-grid-heading-size: 0.85rem;
+  --kronos-grid-weekday-size: 0.66rem;
+  --kronos-grid-number-size: 0.75rem;
 }
 
 #foundry-kronos .kronos-wrapper.kronos-size-small {
@@ -294,6 +316,17 @@
   --kronos-unit-margin: 2px;
   --kronos-settings-gap: 2px;
   --kronos-settings-padding: 4px;
+
+  --kronos-grid-top: 9px;
+  --kronos-grid-padding: 8px;
+  --kronos-grid-gap: 3px;
+  --kronos-grid-radius: 6px;
+  --kronos-grid-cell-height: 34px;
+  --kronos-grid-cell-padding: 3px;
+  --kronos-grid-cell-radius: 4px;
+  --kronos-grid-heading-size: 0.72rem;
+  --kronos-grid-weekday-size: 0.6rem;
+  --kronos-grid-number-size: 0.68rem;
 }
 
 #foundry-kronos .kronos-panel {
@@ -642,6 +675,133 @@
 #foundry-kronos .kronos-unit option {
   background: var(--kronos-card-bg);
   color: var(--kronos-text);
+}
+
+/* --- The month grid ---------------------------------------------------------------------------- */
+
+#foundry-kronos .kronos-grid {
+  margin-top: var(--kronos-grid-top);
+  padding: var(--kronos-grid-padding);
+
+  background: rgb(0 0 0 / 30%);
+  border: 1px solid var(--kronos-card-border);
+  border-radius: var(--kronos-grid-radius);
+}
+
+#foundry-kronos .kronos-grid-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--kronos-grid-gap);
+  margin-bottom: var(--kronos-grid-gap);
+}
+
+#foundry-kronos .kronos-grid-nav .kronos-button {
+  padding: var(--kronos-button-padding);
+  border-radius: var(--kronos-button-radius);
+  color: var(--kronos-text);
+  transition: 0.2s;
+}
+
+#foundry-kronos .kronos-grid-nav .kronos-button:hover {
+  background: var(--kronos-control-hover);
+  color: var(--kronos-gold);
+}
+
+#foundry-kronos .kronos-grid-heading {
+  flex: 1 1 auto;
+  text-align: center;
+
+  font-size: var(--kronos-grid-heading-size);
+  font-weight: 700;
+  color: var(--kronos-gold);
+
+  /* The heading names the selected day, which can be longer than the month's name. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#foundry-kronos .kronos-grid-days {
+  display: grid;
+  gap: var(--kronos-grid-gap);
+  text-align: center;
+
+  /* The column count comes from the calendar's weekday list, so it is set on the element. */
+}
+
+#foundry-kronos .kronos-grid-weekday {
+  padding-bottom: var(--kronos-grid-gap);
+  font-size: var(--kronos-grid-weekday-size);
+  font-weight: 700;
+  color: var(--kronos-muted);
+
+  /* A long weekday name must not widen its column past its share. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The cells before day 1. They hold the column open and are not interactive. */
+#foundry-kronos .kronos-grid-blank {
+  min-height: var(--kronos-grid-cell-height);
+}
+
+#foundry-kronos .kronos-grid-day {
+  all: unset;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  min-height: var(--kronos-grid-cell-height);
+  padding: var(--kronos-grid-cell-padding);
+
+  background: var(--kronos-control-bg);
+  border: 1px solid var(--kronos-card-border);
+  border-radius: var(--kronos-grid-cell-radius);
+
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#foundry-kronos .kronos-grid-day:hover {
+  border-color: var(--kronos-gold);
+}
+
+#foundry-kronos .kronos-grid-number {
+  font-size: var(--kronos-grid-number-size);
+  font-weight: 700;
+  color: var(--kronos-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The day the clock is on. */
+#foundry-kronos .kronos-grid-day.kronos-today {
+  border-color: var(--kronos-gold);
+  background: rgb(229 169 60 / 10%);
+}
+
+#foundry-kronos .kronos-grid-day.kronos-today .kronos-grid-number {
+  color: var(--kronos-gold);
+}
+
+/* Picked, which moves nothing on its own. */
+#foundry-kronos .kronos-grid-day.kronos-selected {
+  border-color: var(--kronos-text);
+  background: rgb(255 255 255 / 6%);
+}
+
+/* The one control in the grid that moves the clock. */
+#foundry-kronos .kronos-grid-go {
+  align-self: flex-end;
+  padding: 0;
+  color: var(--kronos-gold);
+}
+
+#foundry-kronos .kronos-grid-go .kronos-icon {
+  font-size: var(--kronos-grid-number-size);
 }
 
 /* --- What the smallest size gives up ---------------------------------------------------------- */

@@ -23,6 +23,10 @@ export interface World {
   paused?: boolean;
   /** Whether this client is the active GM, which the clock's halt reason depends on. */
   activeGM?: boolean;
+  /** Whether the month grid is open, which month it shows, and which day is picked in it. */
+  grid?: boolean;
+  viewedMonth?: { year: number; month: number };
+  selectedDay?: number;
   /** Anything else a setting read should answer with, keyed without the module namespace. */
   settings?: Record<string, unknown>;
 }
@@ -80,8 +84,19 @@ export async function renderPanel(world: World = {}): Promise<HTMLElement> {
   try {
     // `_renderHTML` is protected; a test is allowed to reach it, and going through it rather than
     // through a copy of it is what keeps these assertions about the real panel.
-    const bar = new CalendarBar() as unknown as { _renderHTML(): Promise<HTMLElement> };
-    return await bar._renderHTML();
+    const bar = new CalendarBar();
+
+    // The grid's state lives on the application rather than in settings, so a test sets it the same
+    // way the click handler does.
+    if (world.grid !== undefined || world.selectedDay !== undefined) {
+      bar.grid = {
+        open: world.grid ?? true,
+        viewedMonth: world.viewedMonth ?? null,
+        selectedDay: world.selectedDay ?? null,
+      };
+    }
+
+    return await (bar as unknown as { _renderHTML(): Promise<HTMLElement> })._renderHTML();
   } finally {
     Object.assign(globalThis, { game: previousGame });
     setCalendar(BUNDLED_CALENDAR);

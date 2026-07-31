@@ -18,6 +18,7 @@ import { isWeatherCondition, WEATHER_CONDITIONS } from "../../src/weather/genera
 
 interface PanelState {
   isGM: boolean;
+  grid: boolean;
   size: string;
   compact: boolean;
   weather: boolean;
@@ -53,6 +54,7 @@ function worldTimeFromParams(): number {
 function requested(): PanelState {
   return {
     isGM: params.get("player") !== "1",
+    grid: params.get("grid") === "1",
     size: params.get("size") ?? "large",
     compact: params.get("compact") === "1",
     weather: params.get("weather") !== "0",
@@ -93,7 +95,9 @@ async function build(state: PanelState): Promise<HTMLElement> {
     settings.set(`${MODULE_ID}.weatherOverride`, null);
   }
 
-  return (getCalendarBar() as unknown as Bar)._renderHTML();
+  const bar = getCalendarBar();
+  bar.grid = { open: state.grid, viewedMonth: null, selectedDay: null };
+  return (bar as unknown as Bar)._renderHTML();
 }
 
 /** One panel, live, with its listeners bound. */

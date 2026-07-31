@@ -32,6 +32,11 @@ export const ICON = {
   stepForwardMany: glyph("keyboard_double_arrow_right"),
   settings: glyph("settings"),
   festival: glyph("celebration"),
+  grid: glyph("calendar_month"),
+  previousMonth: glyph("chevron_left"),
+  nextMonth: glyph("chevron_right"),
+  /** Moves the clock to the selected day: a clock face, because it moves time and not the view. */
+  goToDay: glyph("schedule"),
 } as const;
 
 const CONDITION_SYMBOLS: Readonly<Record<WeatherCondition, SymbolName>> = {

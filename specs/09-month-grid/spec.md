@@ -81,10 +81,21 @@ blank. That is the whole point of having headers.
 
 ## Open questions
 
-1. **Do seven columns survive the small size?** Roughly 55px a cell at 440px, which is what the
-   reference's cells are at full width. Measured in the harness before the token values are chosen, not
-   estimated — the same discipline as round 06, where an estimate was right by luck and a first
-   measurement was wrong by transition.
+1. ~~**Do seven columns survive the small size?**~~ **Measured: yes.** 61px cells at the small size, with
+   weekday labels at the 0.6rem floor and not truncated, and no overflow anywhere. The panel grows to
+   485px with the grid open, against 462 with it closed.
+
+   | | Cell | Weekday label | Panel |
+   | --- | --- | --- | --- |
+   | large | 110 × 69 | 12px | 880 × 706 |
+   | medium | 85 × 55 | 10.6px | 682 × 573 |
+   | small | 61 × 42 | 9.6px | 485 × 419 |
+
+   Three measurements lied on the way to those numbers, all from stale state: reading a width while the
+   panel's own 0.3s transition was running, reading `min-height` after mutating the size class rather
+   than reloading, and reading a jump's delta against a clock a previous interaction had already moved.
+   Every number above was taken from a fresh load, and the glyph check was validated against a codepoint
+   known to be absent before it was believed.
 
 ## Notes
 

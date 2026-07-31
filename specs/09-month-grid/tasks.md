@@ -14,12 +14,12 @@ wrong is settled where it can be tested.
       are the point — the reference lists days 1 to n with no offset, which makes its weekday columns
       decorative, and this is where that is fixed
 
-- [ ] **3. The grid on the panel** — the toggle in the GM control panel, the view under the readout row,
+- [x] **3. The grid on the panel** — the toggle in the GM control panel, the view under the readout row,
       month navigation, and today marked. `calendar_month` into `icons.json` and the font regenerated.
       Its own size tokens and three value sets in `kronos.css`, measured in the harness rather than
       derived — the spec's open question is whether seven columns survive the small size
 
-- [ ] **4. Selecting a day, and going to it** — clicking a cell selects it and moves nothing; the heading
+- [x] **4. Selecting a day, and going to it** — clicking a cell selects it and moves nothing; the heading
       names the selected day and its festival; the selected cell carries the one control that moves world
       time, through the same `advance` path as every other control. A test that a day cell carries no
       action that moves time, which is how this decision would regress

@@ -13,18 +13,27 @@ import {
   setClockRunning,
   setStepUnit,
 } from "../settings.js";
-import { getWorldDate, secondsToTimeOfDay, type WorldDate } from "../time/clock.js";
+import { getWorldDate, normaliseMonth, secondsToTimeOfDay, worldTimeAtDate, type WorldDate } from "../time/clock.js";
 import { isDaylight } from "../time/sun.js";
 import { haltReason } from "../time/ticker.js";
 import { isStepUnit, STEP_UNITS, type StepUnit, stepSeconds } from "../time/units.js";
 import { temperatureAt } from "../weather/generator.js";
 import { weatherFor } from "../weather/state.js";
 import { ICON, weatherIcon } from "./icons.js";
+import { monthView } from "./month-grid.js";
 import { sizeClass } from "./size.js";
 import { minutesAt, timelineLayout } from "./timeline.js";
 import { openWeatherOverride } from "./weather-override.js";
 
 const t = (key: string): string => game.i18n?.localize(key) ?? key;
+
+/** What the month grid needs to remember between renders. Nothing here is persisted. */
+export interface GridState {
+  open: boolean;
+  /** null follows the clock; a value pins the view to that month. */
+  viewedMonth: { year: number; month: number } | null;
+  selectedDay: number | null;
+}
 
 const pad = (value: number): string => String(value).padStart(2, "0");
 
@@ -96,6 +105,21 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
   #listening = false;
 
   /**
+   * The month grid's state: read by the render, written by the click handler.
+   *
+   * Held here rather than in settings. The grid is something a GM opens to look a date up, not a layout
+   * preference, so it need not survive a reload — and a selection certainly should not, nor should it be
+   * shared with another GM.
+   *
+   * `viewedMonth` null means "follow the clock". An arrow pins it to a year and month, which is what
+   * stops a clock tick pulling someone out of the month they are reading.
+   *
+   * Not private, because a `#` field would put the grid's markup out of reach of any test — and the way
+   * this round regresses is in the markup.
+   */
+  grid: GridState = { open: false, viewedMonth: null, selectedDay: null };
+
+  /**
    * Whether a pointer gesture is in progress.
    *
    * A re-render replaces the whole panel, which would detach the element a gesture is holding — the
@@ -130,6 +154,7 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
     // left was decoration on the half of the card that had to give way.
     if (isGM) panel.append(this.#timeline(date));
     panel.append(this.#controls(date, isGM));
+    if (isGM && this.grid.open) panel.append(this.#monthGrid(date));
     wrapper.append(panel);
 
     return wrapper;
@@ -177,6 +202,63 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
 
     container.append(track, labels);
     return container;
+  }
+
+  /**
+   * A month at a time. GM-only, like the control that opens it.
+   *
+   * Clicking a day selects it and moves nothing — a month is wide enough that one click could put the
+   * party three weeks forward, and every such move re-syncs scene darkness and weather and runs every
+   * other module's `updateWorldTime` handler. Moving is the selected cell's own control.
+   */
+  #monthGrid(date: WorldDate): HTMLElement {
+    const showing = this.grid.viewedMonth ?? { year: date.year, month: date.month };
+    const view = monthView(showing.year, showing.month, date, this.grid.selectedDay);
+
+    const section = element("div", "kronos-grid");
+
+    const nav = element("div", "kronos-grid-nav");
+    nav.append(button(ICON.previousMonth, "month", t("KRONOS.Action.PreviousMonth"), { step: "-1" }));
+
+    const heading = element("div", "kronos-grid-heading", `${view.monthName} ${view.year}`);
+    if (view.selected !== null) {
+      // The smallest honest purpose for a selection while notes do not exist yet: say what was picked.
+      const festival = getWorldDate(worldTimeAtDate(view.year, view.month, view.selected)).festival;
+      heading.textContent = `${pad(view.selected)} ${view.monthName} ${view.year}${festival ? ` · ${festival}` : ""}`;
+    }
+    nav.append(heading, button(ICON.nextMonth, "month", t("KRONOS.Action.NextMonth"), { step: "1" }));
+    section.append(nav);
+
+    const grid = element("div", "kronos-grid-days");
+    grid.style.gridTemplateColumns = `repeat(${view.weekdays.length}, 1fr)`;
+
+    for (const name of view.weekdays) grid.append(element("div", "kronos-grid-weekday", name));
+
+    // Day 1 sits under its own weekday, which is the whole reason the headers above mean anything.
+    for (let blank = 0; blank < view.blanks; blank += 1) grid.append(element("div", "kronos-grid-blank"));
+
+    for (const entry of view.days) {
+      const cell = element("button", "kronos-grid-day");
+      cell.type = "button";
+      cell.setAttribute("aria-label", `${entry.day} ${view.monthName} — ${t("KRONOS.Action.SelectDay")}`);
+      cell.title = t("KRONOS.Action.SelectDay");
+      cell.dataset["action"] = "select-day";
+      cell.dataset["day"] = String(entry.day);
+      cell.classList.toggle("kronos-today", entry.isToday);
+      cell.classList.toggle("kronos-selected", entry.isSelected);
+      cell.append(element("span", "kronos-grid-number", String(entry.day)));
+
+      if (entry.isSelected) {
+        const go = button(ICON.goToDay, "go-to-day", t("KRONOS.Action.GoToDay"), { day: String(entry.day) });
+        go.classList.add("kronos-grid-go");
+        cell.append(go);
+      }
+
+      grid.append(cell);
+    }
+
+    section.append(grid);
+    return section;
   }
 
   #controls(date: WorldDate, isGM: boolean): HTMLElement {
@@ -287,6 +369,10 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
 
     panel.append(button(ICON.stepForwardOne, "step", t("KRONOS.Action.StepForwardOne"), { count: "1" }), forward);
 
+    const gridToggle = button(ICON.grid, "toggle-grid", t("KRONOS.Action.MonthGrid"));
+    gridToggle.classList.toggle("kronos-active", this.grid.open);
+    panel.append(gridToggle);
+
     const settings = button(ICON.settings, "open-settings", t("KRONOS.Action.Settings"));
     settings.classList.add("kronos-settings");
     panel.append(settings);
@@ -336,6 +422,33 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
 
     const date = getWorldDate();
     switch (target.dataset["action"]) {
+      case "toggle-grid":
+        // Opening follows the clock and starts with nothing picked, so it never reopens somewhere else.
+        this.grid = { open: !this.grid.open, viewedMonth: null, selectedDay: null };
+        await this.render();
+        break;
+      case "month": {
+        const step = Number(target.dataset["step"] ?? 0);
+        const showing = this.grid.viewedMonth ?? { year: date.year, month: date.month };
+        this.grid.viewedMonth = normaliseMonth(showing.year, showing.month + step);
+        await this.render();
+        break;
+      }
+      case "select-day": {
+        const day = Number(target.dataset["day"]);
+        // Selecting moves nothing, and clicking the picked day again unpicks it.
+        this.grid.selectedDay = Number.isFinite(day) && this.grid.selectedDay !== day ? day : null;
+        await this.render();
+        break;
+      }
+      case "go-to-day": {
+        const day = Number(target.dataset["day"]);
+        if (!Number.isFinite(day)) break;
+        const showing = this.grid.viewedMonth ?? { year: date.year, month: date.month };
+        // Keeps the time of day, and goes through the same advance path as every other control.
+        await advance(worldTimeAtDate(showing.year, showing.month, day, date.secondsIntoDay) - date.worldTime);
+        break;
+      }
       case "toggle-compact":
         await setBarCompact(!isBarCompact());
         await this.render();
