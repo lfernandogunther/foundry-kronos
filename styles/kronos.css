@@ -452,9 +452,18 @@
  * root is the only handle available. Every rule below is qualified by it, so nothing here can reach
  * another dialog.
  *
- * The element names are Foundry's own — `window-header`, `window-title`, `window-content` — and the
- * button is matched on the action this module gives it rather than on a framework class, which is
- * the part least likely to move between releases.
+ * All of it is also gated on `:has(.window-content)`, and that gate is the point.
+ *
+ * `.kronos-modal` lands on the root for certain — it is a documented application option. The names of
+ * the elements *inside* the frame are not documented anywhere public, so they are a guess. Ungated,
+ * a wrong guess produces the worst of both: our dark card wrapped around Foundry's untouched innards.
+ * Gated, the whole block simply does not apply and the dialog is entirely Foundry's, which is a
+ * perfectly good dialog. Either our look or theirs, never half of each.
+ *
+ * The same reasoning covers `:has()` itself being unavailable: the block drops out and the degraded
+ * state is the intended one.
+ *
+ * The custom properties stay ungated because on their own they paint nothing.
  */
 .kronos-modal {
   --kronos-card-bg: #0f1318;
@@ -464,7 +473,9 @@
   --kronos-text: #d1d5db;
   --kronos-muted: #6b7280;
   --kronos-inset: #080a0c;
+}
 
+.kronos-modal:has(.window-content) {
   background: var(--kronos-card-bg);
   border: 1px solid var(--kronos-card-border);
   border-radius: 12px;
@@ -472,30 +483,30 @@
   color: var(--kronos-text);
 }
 
-.kronos-modal .window-header {
+.kronos-modal:has(.window-content) .window-header {
   background: transparent;
   border-bottom: 1px solid var(--kronos-card-border);
 }
 
-.kronos-modal .window-title {
+.kronos-modal:has(.window-content) .window-title {
   font-size: 1rem;
   font-weight: 700;
   text-transform: uppercase;
   color: var(--kronos-gold);
 }
 
-.kronos-modal .window-content {
+.kronos-modal:has(.window-content) .window-content {
   background: transparent;
   color: var(--kronos-text);
 }
 
-.kronos-modal label {
+.kronos-modal:has(.window-content) label {
   font-size: 0.75rem;
   color: var(--kronos-muted);
 }
 
-.kronos-modal input,
-.kronos-modal select {
+.kronos-modal:has(.window-content) input,
+.kronos-modal:has(.window-content) select {
   padding: 8px 10px;
   background: var(--kronos-inset);
   border: 1px solid var(--kronos-card-border);
@@ -505,12 +516,12 @@
   color: #fff;
 }
 
-.kronos-modal .notes {
+.kronos-modal:has(.window-content) .notes {
   font-size: 0.75rem;
   color: var(--kronos-muted);
 }
 
-.kronos-modal button {
+.kronos-modal:has(.window-content) button {
   padding: 8px 14px;
   background: transparent;
   border: 1px solid var(--kronos-card-border);
@@ -520,19 +531,19 @@
   cursor: pointer;
 }
 
-.kronos-modal button:hover {
+.kronos-modal:has(.window-content) button:hover {
   background: var(--kronos-card-border);
 }
 
 /* The one that commits the change, matched on the action this module gives it. */
-.kronos-modal button[data-action="save"] {
+.kronos-modal:has(.window-content) button[data-action="save"] {
   background: var(--kronos-gold);
   border-color: var(--kronos-gold);
   font-weight: 700;
   color: #111;
 }
 
-.kronos-modal button[data-action="save"]:hover {
+.kronos-modal:has(.window-content) button[data-action="save"]:hover {
   background: var(--kronos-gold-dark);
   border-color: var(--kronos-gold-dark);
 }

@@ -14,7 +14,7 @@ One commit per item.
       handle, compact, weather off, the festival tag, and the label on every control. Per-file
       environment, so the existing tests stay in node
 
-- [ ] **3. The modal, all-or-nothing** — every cosmetic rule in `kronos.css` gated on the dialog frame
+- [x] **3. The modal, all-or-nothing** — every cosmetic rule in `kronos.css` gated on the dialog frame
       being present, so an unconfirmed class name yields Foundry's own dialog rather than our card
       wrapped around its innards. A test asserting the contract against a fixture without the probe
       class
