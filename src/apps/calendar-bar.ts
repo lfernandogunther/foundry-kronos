@@ -169,6 +169,9 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
     for (const entry of layout.markers) {
       const label = element("span", "kronos-label", entry.label);
       label.style.left = `${entry.percent}%`;
+      // Named rather than counted: the stylesheet hides two of these at the smallest size, and
+      // `:nth-child(2)` would keep working right up until a marker is added or reordered.
+      label.dataset["target"] = entry.target;
       labels.append(label);
     }
 

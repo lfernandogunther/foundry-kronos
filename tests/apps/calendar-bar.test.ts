@@ -143,6 +143,35 @@ describe("the size", () => {
     }
   });
 
+  it("names every timeline label, so the stylesheet can hide one without counting", async () => {
+    const labels = all(await renderPanel({ worldTime: EVENING }), ".kronos-label");
+    expect(labels.map((label) => label.dataset["target"])).toEqual([
+      "midnight",
+      "sunrise",
+      "noon",
+      "sunset",
+      "endOfDay",
+    ]);
+  });
+
+  it("gives up nothing structurally at the smallest size", async () => {
+    // Small drops the seconds, the condition text, the long-step arrows and two labels — all in CSS.
+    // The markup is one shape at every size, so a cut can never take a control out of reach of a
+    // client that later chooses large.
+    const small = await renderPanel({ settings: { barSize: "small" }, worldTime: EVENING });
+    const large = await renderPanel({ settings: { barSize: "large" }, worldTime: EVENING });
+
+    const shape = (panel: HTMLElement): string =>
+      all(panel, "*")
+        .map((el) => `${el.tagName}.${[...el.classList].filter((c) => !c.startsWith("kronos-size-")).join(".")}`)
+        .join("|");
+
+    expect(shape(small)).toBe(shape(large));
+    expect(one(small, ".kronos-seconds")).not.toBeNull();
+    expect(all(small, ".kronos-long-step")).toHaveLength(2);
+    expect(all(small, ".kronos-label")).toHaveLength(5);
+  });
+
   it("keeps the size and the collapse state independent", async () => {
     const panel = await renderPanel({ settings: { barSize: "small" }, compact: true });
     expect([...panel.classList]).toContain("kronos-size-small");

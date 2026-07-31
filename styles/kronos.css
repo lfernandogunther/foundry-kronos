@@ -644,6 +644,26 @@
   color: var(--kronos-text);
 }
 
+/* --- What the smallest size gives up ---------------------------------------------------------- */
+
+/*
+ * Two of these buy width and two buy height, and it is worth being clear which.
+ *
+ * The long-step arrows and the condition text are the width: measured, the row needs 505px at small
+ * where 416 exist, and these two take that to 38 over. The collapse tab already hides the arrows, so
+ * that rule exists rather than being a new idea.
+ *
+ * The seconds line and the two middle labels buy nothing horizontal — they are stacked — and are
+ * dropped because at this size the panel should print what it can read, not everything it knows.
+ */
+#foundry-kronos .kronos-size-small .kronos-long-step,
+#foundry-kronos .kronos-size-small .kronos-condition,
+#foundry-kronos .kronos-size-small .kronos-seconds,
+#foundry-kronos .kronos-size-small .kronos-label[data-target="sunrise"],
+#foundry-kronos .kronos-size-small .kronos-label[data-target="sunset"] {
+  display: none;
+}
+
 /* --- Collapsed -------------------------------------------------------------------------------- */
 
 #foundry-kronos .kronos-wrapper.kronos-compact {
