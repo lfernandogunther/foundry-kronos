@@ -9,7 +9,7 @@ wrong is settled where it can be tested.
       round-tripping against `getWorldDate`, the time of day preserved, February's 28 and 29, Tarlan's own
       lengths, a year before the epoch, and the count of leading blanks
 
-- [ ] **2. The month as data** — `src/apps/month-grid.ts`: the weekday headers, the blanks before day 1,
+- [x] **2. The month as data** — `src/apps/month-grid.ts`: the weekday headers, the blanks before day 1,
       and one entry per day carrying its number and whether it is today. Pure, no DOM. The leading blanks
       are the point — the reference lists days 1 to n with no offset, which makes its weekday columns
       decorative, and this is where that is fixed
