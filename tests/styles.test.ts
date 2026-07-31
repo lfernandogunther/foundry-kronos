@@ -53,6 +53,28 @@ describe("the stylesheet", () => {
   });
 });
 
+describe("the size tokens", () => {
+  /** Custom properties defined anywhere in the file, and every one referenced through `var()`. */
+  const defined = new Set([...css.matchAll(/^\s*(--kronos-[\w-]+)\s*:/gm)].map((match) => match[1]!));
+  const used = new Set([...css.matchAll(/var\((--kronos-[\w-]+)/g)].map((match) => match[1]!));
+
+  it("finds tokens to check", () => {
+    expect(defined.size).toBeGreaterThan(30);
+    expect(used.size).toBeGreaterThan(30);
+  });
+
+  it("defines every token it uses", () => {
+    // This is the failure no screenshot catches: an undefined custom property does not error, it
+    // resolves to nothing, and the property silently falls back to its initial value — a zero
+    // padding, or an unstyled font size, in one size only.
+    expect([...used].filter((token) => !defined.has(token)).sort()).toEqual([]);
+  });
+
+  it("uses every token it defines", () => {
+    expect([...defined].filter((token) => !used.has(token)).sort()).toEqual([]);
+  });
+});
+
 describe("the override dialog's styling", () => {
   const modalRules = parsed.filter((rule) => rule.selector.includes(".kronos-modal"));
 

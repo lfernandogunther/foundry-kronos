@@ -44,9 +44,89 @@
   box-sizing: border-box;
 }
 
+/*
+ * Every value that changes with the panel's size, at `large`.
+ *
+ * The rules below all read these rather than carrying numbers of their own, so a size is a set of
+ * values in one place and not a second copy of the layout. The two `-compact` pairs exist because the
+ * collapse tab changes those same properties, and it has to be able to do that at every size.
+ *
+ * Spacing and text scale on different curves — halving a 0.65rem label makes it unreadable — so the
+ * smaller sets are written out rather than computed from one factor. `0.6rem` is the floor for text.
+ *
+ * Hairline borders are not here on purpose: a one-pixel divider is a hairline at every size, and
+ * scaling it either rounds back to one pixel or disappears.
+ */
 #foundry-kronos .kronos-wrapper {
+  --kronos-width: 880px;
+  --kronos-width-compact: 520px;
+  --kronos-panel-padding: 22px 20px;
+  --kronos-panel-padding-compact: 12px 14px;
+  --kronos-panel-radius: 12px;
+  --kronos-panel-shadow: 0 8px 32px rgb(0 0 0 / 60%);
+
+  --kronos-tab-width: 24px;
+  --kronos-tab-height: 44px;
+  --kronos-tab-top: 18px;
+  --kronos-tab-radius: 8px;
+  --kronos-tab-shadow: 4px 2px 8px rgb(0 0 0 / 40%);
+
+  --kronos-timeline-margin: 30px 15px;
+  --kronos-markers-top: -26px;
+  --kronos-markers-height: 20px;
+  --kronos-track-height: 10px;
+  --kronos-track-radius: 5px;
+  --kronos-handle-size: 18px;
+  --kronos-handle-border: 2px;
+  --kronos-handle-glow: 12px;
+  --kronos-labels-height: 18px;
+  --kronos-labels-gap: 8px;
+  --kronos-label-size: 0.7rem;
+
+  --kronos-row-padding: 12px 16px;
+  --kronos-row-padding-compact: 6px 10px;
+  --kronos-row-gap: 12px;
+  --kronos-row-gap-compact: 10px;
+  --kronos-row-radius: 8px;
+  --kronos-divider-padding: 16px;
+
+  --kronos-clock-size: 2.2rem;
+  --kronos-clock-size-compact: 1.6rem;
+  --kronos-seconds-size: 0.7rem;
+  --kronos-weekday-size: 0.7rem;
+  --kronos-weekday-spacing: 1px;
+  --kronos-date-size: 1.1rem;
+  --kronos-date-size-compact: 0.95rem;
+
+  --kronos-tags-gap: 6px;
+  --kronos-tags-top: 4px;
+  --kronos-tag-size: 0.65rem;
+  --kronos-tag-padding: 2px 6px;
+  --kronos-tag-radius: 3px;
+  --kronos-festival-gap: 3px;
+  --kronos-festival-icon-size: 0.85rem;
+
+  --kronos-weather-padding: 6px 12px;
+  --kronos-weather-gap: 10px;
+  --kronos-weather-radius: 6px;
+  --kronos-weather-size: 0.8rem;
+  --kronos-condition-size: 0.7rem;
+
+  --kronos-icon-size: 1.2rem;
+  --kronos-button-padding: 6px;
+  --kronos-button-radius: 4px;
+  --kronos-controls-padding: 4px 6px;
+  --kronos-controls-gap: 2px;
+  --kronos-controls-radius: 6px;
+  --kronos-unit-size: 0.75rem;
+  --kronos-unit-padding: 4px 8px;
+  --kronos-unit-padding-compact: 2px 4px;
+  --kronos-unit-margin: 4px;
+  --kronos-settings-gap: 4px;
+  --kronos-settings-padding: 8px;
+
   position: relative;
-  width: 880px;
+  width: var(--kronos-width);
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   color: var(--kronos-text);
@@ -60,12 +140,12 @@
 #foundry-kronos .kronos-panel {
   position: relative;
   width: 100%;
-  padding: 22px 20px;
+  padding: var(--kronos-panel-padding);
 
   background: var(--kronos-card-bg);
   border: 1px solid var(--kronos-card-border);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgb(0 0 0 / 60%);
+  border-radius: var(--kronos-panel-radius);
+  box-shadow: var(--kronos-panel-shadow);
 
   cursor: grab;
 }
@@ -76,7 +156,7 @@
 
 #foundry-kronos .kronos-icon {
   font-family: "Kronos Symbols", sans-serif;
-  font-size: 1.2rem;
+  font-size: var(--kronos-icon-size);
   font-weight: 400;
   font-style: normal;
   line-height: 1;
@@ -101,19 +181,19 @@
 
 #foundry-kronos .kronos-tab {
   position: absolute;
-  top: 18px;
-  right: -24px;
+  top: var(--kronos-tab-top);
+  right: calc(-1 * var(--kronos-tab-width));
   z-index: 10;
 
-  width: 24px;
-  height: 44px;
+  width: var(--kronos-tab-width);
+  height: var(--kronos-tab-height);
 
   background: var(--kronos-card-bg);
   border: 1px solid var(--kronos-card-border);
   border-left: none;
-  border-top-right-radius: 8px;
-  border-bottom-right-radius: 8px;
-  box-shadow: 4px 2px 8px rgb(0 0 0 / 40%);
+  border-top-right-radius: var(--kronos-tab-radius);
+  border-bottom-right-radius: var(--kronos-tab-radius);
+  box-shadow: var(--kronos-tab-shadow);
 
   color: var(--kronos-muted);
   transition: color 0.2s, background 0.2s;
@@ -128,15 +208,15 @@
 
 #foundry-kronos .kronos-timeline {
   position: relative;
-  margin: 30px 15px;
+  margin: var(--kronos-timeline-margin);
 }
 
 #foundry-kronos .kronos-markers {
   position: absolute;
-  top: -26px;
+  top: var(--kronos-markers-top);
   left: 0;
   width: 100%;
-  height: 20px;
+  height: var(--kronos-markers-height);
 }
 
 #foundry-kronos .kronos-marker {
@@ -153,12 +233,12 @@
 
 #foundry-kronos .kronos-track {
   position: relative;
-  height: 10px;
+  height: var(--kronos-track-height);
 
   /* Night at both ends, twilight either side, daylight through the middle. */
   background: linear-gradient(90deg, #05080c 0%, #2a3d1c 25%, #8a7a3b 50%, #2a3d1c 75%, #05080c 100%);
   border: 1px solid rgb(255 255 255 / 8%);
-  border-radius: 5px;
+  border-radius: var(--kronos-track-radius);
 }
 
 /* Only a GM's track carries an action, and only theirs is interactive. */
@@ -176,13 +256,13 @@
   z-index: 2;
   transform: translate(-50%, -50%);
 
-  width: 18px;
-  height: 18px;
+  width: var(--kronos-handle-size);
+  height: var(--kronos-handle-size);
 
   background: var(--kronos-gold);
-  border: 2px solid #fff;
+  border: var(--kronos-handle-border) solid #fff;
   border-radius: 50%;
-  box-shadow: 0 0 12px var(--kronos-gold);
+  box-shadow: 0 0 var(--kronos-handle-glow) var(--kronos-gold);
 
   transition: transform 0.1s ease;
 }
@@ -194,15 +274,15 @@
 #foundry-kronos .kronos-labels {
   position: relative;
   width: 100%;
-  height: 18px;
-  margin-top: 8px;
+  height: var(--kronos-labels-height);
+  margin-top: var(--kronos-labels-gap);
 }
 
 #foundry-kronos .kronos-label {
   position: absolute;
   transform: translateX(-50%);
   font-family: monospace;
-  font-size: 0.7rem;
+  font-size: var(--kronos-label-size);
   color: var(--kronos-muted);
 }
 
@@ -216,12 +296,12 @@
 #foundry-kronos .kronos-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--kronos-row-gap);
 
-  padding: 12px 16px;
+  padding: var(--kronos-row-padding);
   background: rgb(0 0 0 / 25%);
   border: 1px solid rgb(255 255 255 / 3%);
-  border-radius: 8px;
+  border-radius: var(--kronos-row-radius);
 }
 
 /* Sized to their content, like the `auto` columns of the grid the design uses. */
@@ -233,13 +313,13 @@
 
 #foundry-kronos .kronos-clock,
 #foundry-kronos .kronos-date {
-  padding-right: 16px;
+  padding-right: var(--kronos-divider-padding);
   border-right: 1px solid var(--kronos-card-border);
 }
 
 #foundry-kronos .kronos-time {
   font-family: monospace;
-  font-size: 2.2rem;
+  font-size: var(--kronos-clock-size);
   font-weight: 700;
   line-height: 1;
   color: var(--kronos-gold);
@@ -247,21 +327,21 @@
 }
 
 #foundry-kronos .kronos-seconds {
-  font-size: 0.7rem;
+  font-size: var(--kronos-seconds-size);
   color: var(--kronos-muted);
   font-variant-numeric: tabular-nums;
 }
 
 #foundry-kronos .kronos-weekday {
-  font-size: 0.7rem;
+  font-size: var(--kronos-weekday-size);
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: var(--kronos-weekday-spacing);
   text-transform: uppercase;
   color: var(--kronos-gold);
 }
 
 #foundry-kronos .kronos-datum {
-  font-size: 1.1rem;
+  font-size: var(--kronos-date-size);
   font-weight: 700;
   line-height: 1.1;
   color: #fff;
@@ -273,14 +353,14 @@
 #foundry-kronos .kronos-tags {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 4px;
+  gap: var(--kronos-tags-gap);
+  margin-top: var(--kronos-tags-top);
 }
 
 #foundry-kronos .kronos-tag {
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-size: 0.65rem;
+  padding: var(--kronos-tag-padding);
+  border-radius: var(--kronos-tag-radius);
+  font-size: var(--kronos-tag-size);
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -295,7 +375,7 @@
 #foundry-kronos .kronos-tag-festival {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: var(--kronos-festival-gap);
 
   background: rgb(184 80 40 / 20%);
   border: 1px solid rgb(184 80 40 / 40%);
@@ -303,7 +383,7 @@
 }
 
 #foundry-kronos .kronos-tag-festival .kronos-icon {
-  font-size: 0.85rem;
+  font-size: var(--kronos-festival-icon-size);
 }
 
 /* --- Weather ---------------------------------------------------------------------------------- */
@@ -311,15 +391,15 @@
 #foundry-kronos .kronos-weather {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--kronos-weather-gap);
   width: fit-content;
 
-  padding: 6px 12px;
+  padding: var(--kronos-weather-padding);
   background: var(--kronos-control-bg);
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: var(--kronos-weather-radius);
 
-  font-size: 0.8rem;
+  font-size: var(--kronos-weather-size);
   transition: 0.2s;
 }
 
@@ -338,7 +418,7 @@
 }
 
 #foundry-kronos .kronos-condition {
-  font-size: 0.7rem;
+  font-size: var(--kronos-condition-size);
   color: var(--kronos-muted);
 }
 
@@ -348,18 +428,18 @@
 #foundry-kronos .kronos-time-controls {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--kronos-controls-gap);
   margin-left: auto;
 
-  padding: 4px 6px;
+  padding: var(--kronos-controls-padding);
   background: var(--kronos-control-bg);
   border: 1px solid var(--kronos-card-border);
-  border-radius: 6px;
+  border-radius: var(--kronos-controls-radius);
 }
 
 #foundry-kronos .kronos-time-controls .kronos-button {
-  padding: 6px;
-  border-radius: 4px;
+  padding: var(--kronos-button-padding);
+  border-radius: var(--kronos-button-radius);
   color: var(--kronos-text);
   transition: 0.2s;
 }
@@ -380,23 +460,23 @@
 }
 
 #foundry-kronos .kronos-settings {
-  margin-left: 4px;
-  padding-left: 8px;
+  margin-left: var(--kronos-settings-gap);
+  padding-left: var(--kronos-settings-padding);
   border-left: 1px solid var(--kronos-card-border);
   color: var(--kronos-gold);
 }
 
 #foundry-kronos .kronos-unit {
   height: auto;
-  margin: 0 4px;
-  padding: 4px 8px;
+  margin: 0 var(--kronos-unit-margin);
+  padding: var(--kronos-unit-padding);
 
   background: var(--kronos-inset);
   border: 1px solid var(--kronos-card-border);
-  border-radius: 4px;
+  border-radius: var(--kronos-button-radius);
   outline: none;
 
-  font-size: 0.75rem;
+  font-size: var(--kronos-unit-size);
   font-weight: 700;
   text-align: center;
   color: var(--kronos-gold);
@@ -411,7 +491,7 @@
 /* --- Collapsed -------------------------------------------------------------------------------- */
 
 #foundry-kronos .kronos-wrapper.kronos-compact {
-  width: 520px;
+  width: var(--kronos-width-compact);
 }
 
 #foundry-kronos .kronos-compact .kronos-timeline,
@@ -423,26 +503,26 @@
 }
 
 #foundry-kronos .kronos-compact .kronos-panel {
-  padding: 12px 14px;
+  padding: var(--kronos-panel-padding-compact);
 }
 
 #foundry-kronos .kronos-compact .kronos-controls {
-  gap: 10px;
-  padding: 6px 10px;
+  gap: var(--kronos-row-gap-compact);
+  padding: var(--kronos-row-padding-compact);
 }
 
 #foundry-kronos .kronos-compact .kronos-time {
-  font-size: 1.6rem;
+  font-size: var(--kronos-clock-size-compact);
 }
 
 #foundry-kronos .kronos-compact .kronos-datum {
-  font-size: 0.95rem;
+  font-size: var(--kronos-date-size-compact);
 }
 
 /* Kept usable at the smaller size: the unit is what the remaining arrows move by. */
 #foundry-kronos .kronos-compact .kronos-unit {
-  padding: 2px 4px;
-  font-size: 0.7rem;
+  padding: var(--kronos-unit-padding-compact);
+  font-size: var(--kronos-unit-size);
 }
 
 /* --- The weather override dialog, which renders outside the panel ---------------------------- */
