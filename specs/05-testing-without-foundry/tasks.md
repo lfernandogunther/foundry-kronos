@@ -8,7 +8,7 @@ One commit per item.
       `_renderHTML` and `_onRender` the application uses, so gestures can be driven in it. Added to
       `tsconfig.json` so it is type-checked rather than left to rot
 
-- [ ] **2. DOM tests** — `jsdom` as a devDependency, `tests/helpers/panel.ts` to render the panel
+- [x] **2. DOM tests** — `jsdom` as a devDependency, `tests/helpers/panel.ts` to render the panel
       under a described world and restore the globals after, and `tests/apps/calendar-bar.test.ts`
       under `@vitest-environment jsdom`: the player's DOM, the five markers and their order, the
       handle, compact, weather off, the festival tag, and the label on every control. Per-file
