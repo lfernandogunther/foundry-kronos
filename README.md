@@ -244,7 +244,41 @@ field was wrong.
 npm run typecheck
 npm run test
 npm run check     # all of the above plus the build
+npm run harness   # the panel in a browser, no Foundry needed
 ```
+
+### Working on the panel without a Foundry
+
+`npm run harness` serves the real panel — the actual code in `src/`, the actual `styles/kronos.css`,
+the actual icon font — against stubbed Foundry globals, and reloads on save. It mounts through the
+same `_renderHTML` and `_onRender` the application calls, so gestures work: you can drag the handle
+and watch what it writes.
+
+Query parameters put it in states a world is not currently in:
+
+| | |
+| --- | --- |
+| `?player=1` | What a non-GM sees |
+| `?compact=1` | Collapsed |
+| `?weather=0` | Weather switched off |
+| `?calendar=tarlan` | Another bundled calendar |
+| `?date=2025-06-21T14:30` | Any date; `?at=79200` takes a raw world time |
+| `?condition=storm` | Force a weather condition, to see every icon |
+| `?gallery=1` | Every state above at once, for eyeballing a change |
+
+**What it cannot tell you.** Anything that only a running Foundry provides is absent and cannot be
+mocked honestly — the `DialogV2` frame, the settings sheet the gear opens, hooks firing,
+`updateWorldTime` between clients, writes to Scene documents, and agreement with the PF2e World Clock.
+Stubbing those would assert a guess against itself: it passes and proves nothing.
+
+For those, the community's answer is [Quench](https://github.com/Ethaks/FVTT-Quench) — Mocha and Chai
+running inside a live world as a test-runner application. It needs a Foundry, and so does the other
+common setup (a real instance in Docker driven by Cypress or Playwright). A licence is required to
+*download* Foundry, not only to run it, so there is no free instance to point either of them at.
+
+The one place that gap shaped the code is the override dialog: its styling is gated on Foundry's frame
+actually being present, so an unconfirmed class name leaves you with Foundry's own dialog rather than
+this module's card wrapped around it. `tests/styles.test.ts` holds that line.
 
 ### The panel's icons
 
