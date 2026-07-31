@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kronos panel harness</title>
+
+    <!--
+      The real stylesheet, by absolute path, so the relative font URL inside it resolves to
+      /styles/fonts/… exactly as it does when Foundry serves the module folder.
+    -->
+    <link rel="stylesheet" href="/styles/kronos.css" />
+
+    <style>
+      /* Page chrome only. Nothing here may style the panel — that is the stylesheet's job. */
+      body {
+        margin: 0;
+        padding: 40px 24px;
+        min-height: 100vh;
+        background: #080a0c;
+        color: #6b7280;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .harness-note {
+        max-width: 880px;
+        margin: 0 auto 28px;
+        font-size: 0.8rem;
+        line-height: 1.6;
+      }
+
+      .harness-note code {
+        color: #e5a93c;
+        font-size: 0.75rem;
+      }
+
+      .harness-note a {
+        color: #d1d5db;
+      }
+
+      #foundry-kronos:not(.harness-gallery) {
+        display: flex;
+        justify-content: center;
+      }
+
+      .harness-gallery {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+      }
+
+      .harness-label {
+        margin: 28px 0 0;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: #6b7280;
+      }
+    </style>
+  </head>
+
+  <body>
+    <p class="harness-note">
+      The real panel, the real stylesheet, and stubbed Foundry globals. Gestures work; the dialog
+      frame, the settings sheet, hooks and scene writes do not exist here and cannot be judged from
+      this page.<br />
+      <code>?player=1</code> <code>?compact=1</code> <code>?weather=0</code>
+      <code>?calendar=tarlan</code> <code>?date=2025-06-21T14:30</code> <code>?at=79200</code>
+      <code>?condition=storm</code> <code>?gallery=1</code><br />
+      <a href="?gallery=1">Every state at once →</a>
+    </p>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

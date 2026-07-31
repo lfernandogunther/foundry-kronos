@@ -7,6 +7,7 @@
   "scripts": {
     "build": "vite build && node tools/package.mjs",
     "dev": "vite build --watch",
+    "harness": "vite --config vite.harness.config.ts --open /tools/harness/index.html",
     "install:foundry": "npm run build && node tools/install.mjs",
     "release": "npm run build && node tools/release.mjs",
     "typecheck": "tsc --noEmit",
