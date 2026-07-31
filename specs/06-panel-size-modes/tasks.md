@@ -16,7 +16,7 @@ is attributable. Task 2 lands before the sizes are measured, because it changes 
       collapse from a list of absences to one assertion that also checks the row is still there, which
       is what stops it passing on a render that threw
 
-- [ ] **3. The size setting and the class** — `src/apps/size.ts` with `BarSize`, the list and a guard;
+- [x] **3. The size setting and the class** — `src/apps/size.ts` with `BarSize`, the list and a guard;
       `barSize` in `settings.ts` as a listed client setting defaulting to medium and re-rendering on
       change; `kronos-size-<size>` on the wrapper. Strings in `lang/en.json`. Tests: the guard, the
       class per size, medium when unset, and medium when the stored value is nonsense

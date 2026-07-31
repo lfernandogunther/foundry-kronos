@@ -3,6 +3,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ICON } from "../../src/apps/icons.js";
+import { BAR_SIZES } from "../../src/apps/size.js";
 import { STEP_UNITS } from "../../src/time/units.js";
 import { all, one, renderPanel } from "../helpers/panel.js";
 
@@ -117,6 +118,35 @@ describe("the handle", () => {
 
     const noon = one(await renderPanel({ worldTime: 43_200 }), ".kronos-handle");
     expect(noon?.style.left).toBe("50%");
+  });
+});
+
+describe("the size", () => {
+  it("marks the wrapper with exactly one size class", async () => {
+    for (const size of BAR_SIZES) {
+      const panel = await renderPanel({ settings: { barSize: size } });
+      const classes = [...panel.classList].filter((name) => name.startsWith("kronos-size-"));
+      expect(classes, size).toEqual([`kronos-size-${size}`]);
+    }
+  });
+
+  it("uses medium when nothing has been chosen", async () => {
+    expect([...(await renderPanel({})).classList]).toContain("kronos-size-medium");
+  });
+
+  it("uses medium when the stored value is not a size", async () => {
+    // A stale or hand-edited setting must not leave the panel with a class the stylesheet has no
+    // values for, which would render it with every token at its initial value.
+    for (const stored of ["gigantic", "", 3, null]) {
+      const panel = await renderPanel({ settings: { barSize: stored } });
+      expect([...panel.classList], JSON.stringify(stored)).toContain("kronos-size-medium");
+    }
+  });
+
+  it("keeps the size and the collapse state independent", async () => {
+    const panel = await renderPanel({ settings: { barSize: "small" }, compact: true });
+    expect([...panel.classList]).toContain("kronos-size-small");
+    expect([...panel.classList]).toContain("kronos-compact");
   });
 });
 

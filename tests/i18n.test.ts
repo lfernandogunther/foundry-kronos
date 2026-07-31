@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import en from "../lang/en.json" with { type: "json" };
+import { BAR_SIZES } from "../src/apps/size.js";
 import { SEASONS } from "../src/time/season.js";
 import { STEP_UNITS } from "../src/time/units.js";
 import { WEATHER_CONDITIONS } from "../src/weather/generator.js";
@@ -49,6 +50,12 @@ describe("translation keys", () => {
     }
   });
 
+  it("has a translation for every panel size", () => {
+    for (const size of BAR_SIZES) {
+      expect(known).toContain(`${PREFIX}.Size.${size}`);
+    }
+  });
+
   it("has a translation for every weather condition", () => {
     for (const condition of WEATHER_CONDITIONS) {
       expect(known).toContain(`${PREFIX}.Weather.${condition}`);
@@ -72,6 +79,7 @@ describe("translation keys", () => {
   it("has no translations that nothing uses", () => {
     const used = new Set(staticKeys().keys());
     for (const season of SEASONS) used.add(`${PREFIX}.Season.${season}`);
+    for (const size of BAR_SIZES) used.add(`${PREFIX}.Size.${size}`);
     for (const condition of WEATHER_CONDITIONS) used.add(`${PREFIX}.Weather.${condition}`);
     for (const unit of STEP_UNITS) used.add(`${PREFIX}.Unit.${unit}`);
     for (const reason of ["no-active-gm", "game-paused", "combat"]) used.add(`${PREFIX}.Clock.Halted.${reason}`);

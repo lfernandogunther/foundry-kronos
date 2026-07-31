@@ -1,3 +1,4 @@
+import { type BarSize, BAR_SIZES, DEFAULT_BAR_SIZE, isBarSize } from "./apps/size.js";
 import { WeatherMappingApp } from "./apps/weather-mapping.js";
 import { MODULE_ID } from "./constants.js";
 import { BUNDLED_CALENDARS, DEFAULT_CALENDAR_ID } from "./time/calendar.js";
@@ -27,6 +28,7 @@ export const SETTINGS = {
   calendarFile: "calendarFile",
   barPosition: "barPosition",
   barCompact: "barCompact",
+  barSize: "barSize",
   stepUnit: "stepUnit",
 } as const;
 
@@ -156,6 +158,19 @@ export function registerSettings(onBarRefresh: () => void, onClockRefresh: () =>
     range: { min: 10, max: 240, step: 10 },
   });
 
+  // Client-scoped and listed: how much of the screen the panel may take is a per-person decision, and
+  // it is the one setting people will actually want to change from the panel's own gear.
+  register(SETTINGS.barSize, {
+    name: t("KRONOS.Settings.BarSize.Name"),
+    hint: t("KRONOS.Settings.BarSize.Hint"),
+    scope: "client",
+    config: true,
+    type: String,
+    default: DEFAULT_BAR_SIZE,
+    choices: Object.fromEntries(BAR_SIZES.map((size) => [size, t(`KRONOS.Size.${size}`)])),
+    onChange: onBarRefresh,
+  });
+
   register(SETTINGS.calendar, {
     name: t("KRONOS.Settings.Calendar.Name"),
     hint: t("KRONOS.Settings.Calendar.Hint"),
@@ -249,6 +264,12 @@ export function getClimate(): ClimateProfile {
 }
 
 export const isBarCompact = (): boolean => readBoolean(SETTINGS.barCompact, false);
+
+/** Falls back to the default rather than trusting a stored value, which may be stale or hand-edited. */
+export function getBarSize(): BarSize {
+  const value = read(SETTINGS.barSize);
+  return isBarSize(value) ? value : DEFAULT_BAR_SIZE;
+}
 
 export const setBarCompact = (compact: boolean): Promise<unknown> =>
   game.settings.set(MODULE_ID, SETTINGS.barCompact, compact);

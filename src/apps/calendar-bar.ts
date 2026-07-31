@@ -1,6 +1,7 @@
 import { MODULE_ID } from "../constants.js";
 import {
   getBarPosition,
+  getBarSize,
   getLatitude,
   getStepMultiplier,
   getStepUnit,
@@ -19,6 +20,7 @@ import { isStepUnit, STEP_UNITS, type StepUnit, stepSeconds } from "../time/unit
 import { temperatureAt } from "../weather/generator.js";
 import { weatherFor } from "../weather/state.js";
 import { ICON, weatherIcon } from "./icons.js";
+import { sizeClass } from "./size.js";
 import { minutesAt, timelineLayout } from "./timeline.js";
 import { openWeatherOverride } from "./weather-override.js";
 
@@ -108,6 +110,7 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
     const isGM = game.user.isGM;
 
     const wrapper = element("div", "kronos-wrapper");
+    wrapper.classList.add(sizeClass(getBarSize()));
     wrapper.classList.toggle("kronos-compact", isBarCompact());
 
     // Outside the panel's right border, so collapsing it does not move the control it was collapsed
