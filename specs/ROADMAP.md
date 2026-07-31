@@ -3,7 +3,7 @@
 What is left, where it comes from, and in what order it makes sense. Nothing here is agreed — this is
 the list to argue with, one at a time. Numbers are the spec folder each would take if we start it.
 
-Rounds 01–06 are done and released as 0.4.0.
+Rounds 01–06 are done and released as 0.4.0. Numbers 07 and 08 are reserved for the backlog below.
 
 ## Where the work comes from
 
@@ -19,22 +19,30 @@ a weather model that disagrees with the reference's.
 
 ## The list
 
-| # | Spec | From | Size | Blocked by |
-| --- | --- | --- | --- | --- |
-| 07 | Brazilian Portuguese | ours | S | — |
-| 08 | Size and collapse from the panel | ours | S | — |
-| 09 | The month grid | design | M | — |
-| 10 | Day notes | design | M | 09 for where they show |
-| 11 | Export and import a calendar | design | S | — |
-| 12 | Calendars as world data, and the wizard | design | **L** | 11 |
-| 13 | Per-season light and temperature | design | M | — |
-| 14 | Step modes as pairs | design | S | — |
-| 15 | The inline weather picker | design | S | — |
-| 16 | Round and encounter awareness | design | S | — |
+Each of the eight below has a `pre-spec.md` in its folder: what it is, what is already settled, and the
+questions to answer before a real spec is written. A pre-spec is not a plan — it is the argument to have
+first, written down so it is not re-derived at the keyboard.
+
+| # | Spec | From | Size | Blocked by | State |
+| --- | --- | --- | --- | --- | --- |
+| 07 | Brazilian Portuguese | ours | S | — | **backlog** |
+| 08 | Size and collapse from the panel | ours | S | — | **backlog** |
+| 09 | The month grid | design | M | — | pre-spec |
+| 10 | Day notes | design | M | 09 for where they show | pre-spec |
+| 11 | Export and import a calendar | design | S | — | pre-spec |
+| 12 | Calendars as world data, and the wizard | design | **L** | 11 | pre-spec |
+| 13 | Per-season light and temperature | design | M | — | pre-spec |
+| 14 | Step modes as pairs | design | S | — | pre-spec |
+| 15 | The inline weather picker | design | S | — | pre-spec |
+| 16 | Round and encounter awareness | design | S | — | pre-spec |
+
+Deferred deliberately, not forgotten. 07 and 08 keep their numbers and have no folder until we pick one
+up, so their reasoning is written out below. Everything from 09 on has a pre-spec, and the pre-spec is
+the source — the entries here are one paragraph and a pointer, so the two cannot drift.
 
 ---
 
-## 07 — Brazilian Portuguese
+## 07 — Brazilian Portuguese *(backlog)*
 
 `lang/en.json` is the only language file, and the reference was written in pt-BR, which says who this is
 for. The plumbing already exists and the i18n test already guards every key, so this is mostly
@@ -49,7 +57,7 @@ Open: whether pt-BR becomes the default when Foundry's language is pt-BR (it doe
 nothing to decide, but the month and weekday names in the bundled calendars are *not* localised and
 arguably should not be. Golarion's months are proper nouns.
 
-## 08 — Size and collapse from the panel
+## 08 — Size and collapse from the panel *(backlog)*
 
 The size chosen in round 06 is only reachable through the settings sheet, and the panel's own gear —
 the shortcut to it — is one of the two things that has never been verified in a running Foundry. So the
@@ -61,106 +69,72 @@ background. The last is probably right — it is invisible until wanted and cost
 
 Small, and it makes the 0.4.0 feature actually discoverable.
 
-## 09 — The month grid
+## 09 — The month grid → [pre-spec](09-month-grid/pre-spec.md)
 
-The reference's `calendar_month` button, which we deliberately do not render. A month at a time: weekday
-headers, one cell per day, today highlighted, arrows to move month by month, and clicking a day goes
-there.
+The view behind the reference's `calendar_month` button. Needs one genuinely new arithmetic: the world
+time a given year/month/day begins at, which is the inverse of what `reckoning.ts` does today.
 
-We have everything needed except one arithmetic: **the world time a given year/month/day begins at**.
-`reckoning.ts` converts one way; this needs the inverse. That is a contained, testable addition and the
-Gregorian path needs its own version of it.
+**The argument to have first:** does clicking a day move world time, or only navigate? The reference
+moves, and this is the first place in the module where one click can move time by weeks.
 
-Worth deciding early: does clicking a day *move world time* or only *preview* the month? The reference
-moves. Moving a party three weeks forward by misclicking is a real risk, and the grid is the first place
-in this module where a click can move time by a lot.
+## 10 — Day notes → [pre-spec](10-day-notes/pre-spec.md)
 
-## 10 — Day notes
+Text attached to an in-world day, shown in the grid.
 
-Per-day text, shown in the grid and probably on the bar for today. The reference stores them in the
-calendar object.
+**The argument to have first:** where notes are stored. A world setting is simple and rewrites every note
+on each write; Journal entries are Foundry's own place for prose and much more work. Also: notes keyed by
+`dayKey` would vanish when a world switches calendar, because that key namespaces itself per calendar on
+purpose.
 
-This is the first feature that stores content someone wrote, which makes storage the whole question:
+## 11 — Export and import a calendar → [pre-spec](11-calendar-export-import/pre-spec.md)
 
-- a world setting — simple, but it is one JSON blob and every note write rewrites all of them
-- flags on the Scene or on the world — same shape, no better
-- **Journal entries** — Foundry's own place for prose. Searchable, permissioned, linkable, and a GM can
-  write one without the panel. Much more Foundry-native, and much more work.
+The reference's import/export bar. Most of it exists — `parseCalendar` reads the format and the *Calendar
+file* setting already loads one.
 
-Not a small decision, and it is worth taking before anything is written rather than after.
+**The argument to have first:** a browser can offer a download but cannot write to the server, so import
+either stores the JSON in world data or uploads a file. Choosing the first is choosing part of 12.
 
-## 11 — Export and import a calendar
+## 12 — Calendars as world data, and the wizard → [pre-spec](12-calendars-as-world-data/pre-spec.md)
 
-The reference's `json-tools-bar`: export all, export one, import a file. We already have the format —
-`parseCalendar` reads it and the two bundled files are written in it — and the *Calendar file* setting
-already loads one from a path. What is missing is doing it from the interface.
+The library and the five-step wizard. Not a UI feature — it moves where the truth lives, from files to
+world data.
 
-Cheap and independently useful: it makes a hand-written calendar shareable without a file path, and it
-settles the serialisation before 12 needs it.
+**The argument to have first:** may the calendar a running world is already reckoning in be edited at
+all? Change a month's length and every date after it moves, and our epoch anchoring shifts the whole
+timeline. Wants 09, 10 and 11 first.
 
-## 12 — Calendars as world data, and the wizard
+## 13 — Per-season light and temperature → [pre-spec](13-season-light-and-temperature/pre-spec.md)
 
-The big one, and the one to be most careful about.
+A disagreement with the reference, not a gap. It stores sunrise, sunset and temperatures per season; we
+compute all four from latitude and a seasonal curve.
 
-Today a calendar is a **file**: bundled, or a path in a setting, parsed read-only, and switching requires
-a reload. The reference has a **library** of calendars the user creates and edits in a five-step wizard,
-stored in the world, switchable from a dropdown on the panel.
+**The argument to have first:** whether the answer is neither — a calendar overriding where it states a
+value and computing where it does not. That keeps Tarlan's solstices honest and still lets someone build
+a world with a fixed six-hour day.
 
-That is not a UI feature, it is a change of where the truth lives. It brings in:
+## 14 — Step modes as pairs → [pre-spec](14-step-modes/pre-spec.md)
 
-- calendars stored in world data, so two GMs can edit them and a bad edit is a broken world, not a
-  broken file
-- switching without a reload — today the reload is why the panel has no calendar dropdown
-- editing the calendar a running world is *already reckoning in*: change a month's length and every
-  date after it moves. The reference does not think about this. We have to, because our epoch anchoring
-  means the whole timeline shifts.
-- the wizard itself, which is five forms and the largest piece of UI in the module
+Ours is a unit plus a multiplier; the reference pairs them into four modes. Theirs reads better on a
+narrow panel, ours is more flexible.
 
-I would not start this until 09, 10 and 11 have settled what the interface looks like. It is also the
-one where "follow the reference exactly" is most likely to be the wrong instruction.
+**The argument to have first:** replace or add. Also whether a longer label like `Meses / Anos` works
+against round 06, since the select is already one of the widest things in the row.
 
-## 13 — Per-season light and temperature
+## 15 — The inline weather picker → [pre-spec](15-inline-weather-picker/pre-spec.md)
 
-A genuine disagreement with the reference, not a missing feature.
+The reference's dropdown on the weather block. We open a dialog instead, because it also edits the two
+temperatures the picker cannot express.
 
-The reference stores `sunrise`, `sunset`, `minTemp` and `maxTemp` **per season**. We compute sunrise and
-sunset from latitude and the day of the year with a solar model, and temperature from a climate profile
-shaped by a seasonal curve. Ours is why Tarlan's month lengths could be tuned so its solstices land on
-the real ones, and why the Arctic behaves.
+**Blocked in practice:** the dialog's styling has never been seen in a running Foundry. No point building
+the second thing on that surface before the first is verified.
 
-Adopting the reference's model would make a calendar author's job easier and the world less physical.
-The interesting option is neither: **let a calendar override the computed values where it states them**,
-and compute where it does not. That keeps Tarlan honest and lets someone build a world with a fixed
-six-hour day if they want one.
+## 16 — Round and encounter awareness → [pre-spec](16-encounter-round/pre-spec.md)
 
-Worth discussing precisely because the reference may simply be wrong here.
+The reference derives a round number from the wall clock, which would contradict Foundry's encounter
+tracker. The version that is not wrong: when an encounter is running, show *its* round.
 
-## 14 — Step modes as pairs
-
-Ours is a unit and a multiplier: pick "minute", the inner arrows move one and the outer ten. The
-reference pairs them — `Min / Horas`, `Rounds / Min`, `Dias / Meses`, `Meses / Anos` — so one choice sets
-both.
-
-Theirs is fewer decisions and reads better on a narrow panel. Ours is more flexible and already
-configurable. Small either way; mostly a question of which we think is nicer to use, and it interacts
-with the small size, where the select is one of the widest things in the row.
-
-## 15 — The inline weather picker
-
-The reference's dropdown on the weather block: eight conditions as icon rows plus "back to automatic".
-We open a dialog instead, because the dialog also edits the two temperatures the picker cannot express.
-
-Do this once the dialog's styling has actually been seen in a world — it is the same surface, and there
-is no point building the second thing before knowing whether the first one looks right.
-
-## 16 — Round and encounter awareness
-
-The reference prints `00s (Round 1)` under the clock. We dropped it: a round counter derived from the
-wall clock would contradict Foundry's encounter tracker, which owns the real number.
-
-The version that is not wrong: when an encounter is running, show *its* round, from
-`game.combats.active`. That is information the reference could not have and a GM actually wants, and the
-clock already stops for combat by default, so the two ideas already meet.
+**The argument to have first:** what the line says when no encounter is running, and where the round goes
+at the small size, which hides that line entirely.
 
 ---
 
