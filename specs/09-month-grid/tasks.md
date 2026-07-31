@@ -3,7 +3,7 @@
 One commit per item. Task 1 is pure arithmetic and lands before any markup, so the thing the reference got
 wrong is settled where it can be tested.
 
-- [ ] **1. A date back into a world time, and a month's shape** — `worldTimeAtDate` and `monthShape` in
+- [x] **1. A date back into a world time, and a month's shape** — `worldTimeAtDate` and `monthShape` in
       `src/time/clock.ts`, each dispatching on whether the active calendar owns its months, both taking and
       returning the displayed year so the era offset is applied on the way in. Tests for both backends:
       round-tripping against `getWorldDate`, the time of day preserved, February's 28 and 29, Tarlan's own

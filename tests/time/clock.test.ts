@@ -1,7 +1,16 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import { BUNDLED_CALENDAR, type CalendarDefinition, parseCalendar, setCalendar } from "../../src/time/calendar.js";
-import { describeGregorian, getWorldDate, secondsToTimeOfDay, startOfDayWorldTime } from "../../src/time/clock.js";
+import {
+  describeGregorian,
+  getWorldDate,
+  monthsInYear,
+  monthShape,
+  normaliseMonth,
+  secondsToTimeOfDay,
+  startOfDayWorldTime,
+  worldTimeAtDate,
+} from "../../src/time/clock.js";
 
 /** The test world was created at the Unix epoch, so a world time is seconds since 1970. */
 const at = (y: number, m: number, d: number, h = 0, min = 0): number => Date.UTC(y, m - 1, d, h, min) / 1000;
@@ -126,6 +135,113 @@ describe("secondsToTimeOfDay over the Gregorian structure", () => {
   });
 });
 
+describe("worldTimeAtDate over the Gregorian structure", () => {
+  it("is the inverse of reading a date", () => {
+    // The whole point: a grid hands back a year, month and day, and the clock has to land on it.
+    for (const [year, month, day] of [
+      [4725, 12, 8],
+      [4725, 1, 1],
+      [4724, 2, 29],
+      [4700, 6, 15],
+    ] as const) {
+      const resolved = worldTimeAtDate(year, month, day, 14 * HOUR + 30 * 60);
+      expect(getWorldDate(resolved), `${day}/${month}/${year}`).toMatchObject({
+        year,
+        month,
+        day,
+        hour: 14,
+        minute: 30,
+      });
+    }
+  });
+
+  it("takes the displayed year, era offset included", () => {
+    // Golarion is Gregorian plus 2700, so Kuthona 8 of 4725 AR is 8 December 2025.
+    expect(worldTimeAtDate(4725, 12, 8)).toBe(at(2025, 12, 8));
+  });
+
+  it("keeps the time of day it was given, and defaults to midnight", () => {
+    expect(worldTimeAtDate(4725, 12, 8, 22 * HOUR)).toBe(at(2025, 12, 8, 22));
+    expect(worldTimeAtDate(4725, 12, 8)).toBe(at(2025, 12, 8));
+  });
+
+  it("does not drop an early year into the twentieth century", () => {
+    // `Date.UTC` maps a year between 0 and 99 into the 1900s. A calendar with no era offset would
+    // otherwise put year 50 nineteen centuries away, and every date in it would be wrong by a
+    // margin nobody would attribute to this.
+    const noOffset = parseCalendar({
+      name: "Unoffset",
+      era: "CE",
+      yearOffset: 0,
+      months: BUNDLED_CALENDAR.months,
+      weekdays: BUNDLED_CALENDAR.weekdays,
+    }) as CalendarDefinition;
+
+    setCalendar(noOffset);
+    try {
+      expect(getWorldDate(worldTimeAtDate(50, 3, 4))).toMatchObject({ year: 50, month: 3, day: 4 });
+    } finally {
+      setCalendar(BUNDLED_CALENDAR);
+    }
+  });
+});
+
+describe("monthShape over the Gregorian structure", () => {
+  it("gives February its real length, by the underlying year", () => {
+    // 2024 is a leap year and 2025 is not; the displayed years are those plus 2700.
+    expect(monthShape(4724, 2).days).toBe(29);
+    expect(monthShape(4725, 2).days).toBe(28);
+    expect(monthShape(4700, 2).days).toBe(29);
+    expect(monthShape(4800, 2).days).toBe(28);
+  });
+
+  it("gives every other month the length it always has", () => {
+    expect([1, 3, 5, 7, 8, 10, 12].map((month) => monthShape(4725, month).days)).toEqual([
+      31, 31, 31, 31, 31, 31, 31,
+    ]);
+    expect([4, 6, 9, 11].map((month) => monthShape(4725, month).days)).toEqual([30, 30, 30, 30]);
+  });
+
+  it("puts day 1 on the weekday it actually falls on", () => {
+    // 8 December 2025 was a Monday, so the 1st was too, and Monday is index 0.
+    expect(monthShape(4725, 12).firstWeekdayIndex).toBe(0);
+    expect(getWorldDate(worldTimeAtDate(4725, 12, 1)).weekdayIndex).toBe(0);
+
+    // And the two agree for every month of a year, which is the property a grid depends on.
+    for (let month = 1; month <= 12; month += 1) {
+      const shape = monthShape(4725, month);
+      expect(shape.firstWeekdayIndex, `month ${month}`).toBe(
+        getWorldDate(worldTimeAtDate(4725, month, 1)).weekdayIndex,
+      );
+      expect(shape.days, `month ${month}`).toBe(
+        getWorldDate(worldTimeAtDate(4725, month, 1) + (shape.days - 1) * DAY).day,
+      );
+    }
+  });
+});
+
+describe("normaliseMonth", () => {
+  it("leaves a month inside the year alone", () => {
+    expect(normaliseMonth(4725, 1)).toEqual({ year: 4725, month: 1 });
+    expect(normaliseMonth(4725, 12)).toEqual({ year: 4725, month: 12 });
+  });
+
+  it("carries into the next year and back into the previous one", () => {
+    expect(normaliseMonth(4725, 13)).toEqual({ year: 4726, month: 1 });
+    expect(normaliseMonth(4725, 0)).toEqual({ year: 4724, month: 12 });
+    expect(normaliseMonth(4725, -1)).toEqual({ year: 4724, month: 11 });
+    expect(normaliseMonth(4725, 25)).toEqual({ year: 4727, month: 1 });
+  });
+
+  it("stays inside the year for every month it produces", () => {
+    for (let month = -30; month <= 40; month += 1) {
+      const normalised = normaliseMonth(4725, month);
+      expect(normalised.month, `from ${month}`).toBeGreaterThanOrEqual(1);
+      expect(normalised.month, `from ${month}`).toBeLessThanOrEqual(monthsInYear());
+    }
+  });
+});
+
 describe("a calendar anchored to the present", () => {
   const LENGTHS = [31, 30, 31, 30, 31, 30, 31, 30, 30, 30, 30, 31];
   const WEEKDAYS = ["Verdrag", "Eldora", "Thalorin", "Drusten", "Mithralis", "Sylvain", "Solara"];
@@ -185,6 +301,29 @@ describe("a calendar anchored to the present", () => {
     setCalendar(tarlan);
     // 21:30, asking for 06:00: this morning, 15h30m back.
     expect(secondsToTimeOfDay(ANCHOR, 6 * 60)).toBe(-(15 * HOUR + 30 * 60));
+  });
+
+  it("resolves a date back into a world time, and its month's shape", () => {
+    setCalendar(tarlan);
+
+    // The anchor itself: 2025-04-14 was a Monday, so Month1 1 of 1000 starts on weekday 0.
+    expect(worldTimeAtDate(1000, 1, 1)).toBe(at(2025, 4, 14));
+    expect(monthShape(1000, 1)).toMatchObject({ year: 1000, month: 1, days: 31, firstWeekdayIndex: 0 });
+
+    // Its own lengths, not the Gregorian ones — month 2 is 30 days where February would be 28.
+    expect(LENGTHS.map((_, index) => monthShape(1000, index + 1).days)).toEqual(LENGTHS);
+
+    // And the inverse holds for a date in the middle of the year, keeping the time of day.
+    const noon = worldTimeAtDate(1000, 7, 15, 12 * HOUR);
+    expect(getWorldDate(noon)).toMatchObject({ year: 1000, month: 7, day: 15, hour: 12 });
+  });
+
+  it("reckons a year before its own epoch", () => {
+    setCalendar(tarlan);
+    // Years run continuously with no gap at zero, so navigating back past the anchor is arithmetic.
+    const before = worldTimeAtDate(999, 12, 31);
+    expect(before).toBeLessThan(worldTimeAtDate(1000, 1, 1));
+    expect(getWorldDate(before)).toMatchObject({ year: 999, month: 12, day: 31 });
   });
 
   it("advances the date without a 32nd day or a February", () => {

@@ -1,7 +1,7 @@
 import { MODULE_ID } from "../constants.js";
 import { type CalendarDefinition, getCalendar, hasOwnMonths } from "./calendar.js";
-import { addMonthsUtc, addYearsUtc, dayOfYear, daysInYear } from "./gregorian.js";
-import { readWorldCreatedOnMs, worldTimeToUtcMs } from "./pf2e-clock.js";
+import { addMonthsUtc, addYearsUtc, dayOfYear, daysInMonth, daysInYear } from "./gregorian.js";
+import { readWorldCreatedOnMs, utcMsToWorldTime, worldTimeToUtcMs } from "./pf2e-clock.js";
 import { type Season, seasonOf } from "./season.js";
 import {
   addMonths,
@@ -11,6 +11,7 @@ import {
   makeReckoning,
   type Reckoning,
   startOfDay,
+  worldTimeAt as reckonWorldTimeAt,
 } from "./reckoning.js";
 
 /**
@@ -235,6 +236,106 @@ function gregorianStepSeconds(worldTime: number, count: number, unit: "month" | 
   const fromUtcMs = worldTimeToUtcMs(worldTime);
   const target = unit === "month" ? addMonthsUtc(fromUtcMs, count) : addYearsUtc(fromUtcMs, count);
   return Math.round((target - fromUtcMs) / 1000);
+}
+
+/**
+ * The instant a date began at: the inverse of {@link getWorldDate}.
+ *
+ * Everything in the module so far asks "what date is this instant?". A month grid asks the other way —
+ * given a year, a month and a day, what world time is that? Both backends already had the arithmetic for
+ * their own reasons; this is the facade that picks one.
+ *
+ * `year` is the year as *displayed*, era offset included, because that is the number a caller reading the
+ * bar or the grid actually has.
+ */
+export function worldTimeAtDate(year: number, month: number, day: number, secondsIntoDay = 0): number {
+  const calendar = getCalendar();
+  if (hasOwnMonths(calendar)) {
+    return reckonWorldTimeAt(reckoningFor(calendar), year, month, day, secondsIntoDay);
+  }
+  return utcMsToWorldTime(gregorianUtcMs(calendar, year, month, day, secondsIntoDay));
+}
+
+/**
+ * A UTC instant from a displayed date, over the Gregorian structure.
+ *
+ * Built through `setUTCFullYear` rather than `Date.UTC`, which maps a year between 0 and 99 into the
+ * 1900s — a calendar with no era offset and an early year would otherwise land nineteen centuries away.
+ * Year, month and day are set together so no intermediate invalid date exists for `setUTCFullYear` to
+ * roll over: setting the year first on a 29 February would silently become 1 March.
+ */
+function gregorianUtcMs(
+  calendar: CalendarDefinition,
+  year: number,
+  month: number,
+  day: number,
+  secondsIntoDay: number,
+): number {
+  const date = new Date(0);
+  date.setUTCFullYear(year - calendar.yearOffset, month - 1, day);
+  date.setUTCHours(
+    Math.floor(secondsIntoDay / SECONDS_PER_HOUR),
+    Math.floor((secondsIntoDay % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE),
+    secondsIntoDay % SECONDS_PER_MINUTE,
+    0,
+  );
+  return date.getTime();
+}
+
+/** How many months the active calendar's year has. */
+export function monthsInYear(): number {
+  return getCalendar().months.length;
+}
+
+/**
+ * Wraps a month into its year, carrying into the year number.
+ *
+ * Month navigation runs on this, so stepping back from the first month of a year lands on the last month
+ * of the one before rather than on month zero.
+ */
+export function normaliseMonth(year: number, month: number): { year: number; month: number } {
+  const count = monthsInYear();
+  const zeroBased = month - 1;
+  const yearShift = Math.floor(zeroBased / count);
+  return { year: year + yearShift, month: zeroBased - yearShift * count + 1 };
+}
+
+export interface MonthShape {
+  /** Displayed year and month this describes, after normalisation. */
+  year: number;
+  month: number;
+  /** How many days it has — which for the Gregorian structure depends on the year. */
+  days: number;
+  /**
+   * Weekday index of day 1, in the calendar's own weekday list.
+   *
+   * This is what a grid needs and what the design reference does not compute: it prints weekday headers
+   * and then lists days from the first column regardless, so its columns say nothing.
+   */
+  firstWeekdayIndex: number;
+}
+
+export function monthShape(year: number, month: number): MonthShape {
+  const calendar = getCalendar();
+  const at = normaliseMonth(year, month);
+
+  if (hasOwnMonths(calendar)) {
+    const reckoning = reckoningFor(calendar);
+    const firstDay = reckonWorldTimeAt(reckoning, at.year, at.month, 1, 0);
+    return {
+      ...at,
+      days: calendar.monthDays?.[at.month - 1] ?? 0,
+      firstWeekdayIndex: describeWorldTime(reckoning, firstDay).weekdayIndex,
+    };
+  }
+
+  const firstDay = new Date(gregorianUtcMs(calendar, at.year, at.month, 1, 0));
+  return {
+    ...at,
+    days: daysInMonth(at.year - calendar.yearOffset, at.month),
+    // getUTCDay() is 0-based on Sunday; the calendar's weekday list starts on the Monday-equivalent.
+    firstWeekdayIndex: (firstDay.getUTCDay() + 6) % 7,
+  };
 }
 
 /**
