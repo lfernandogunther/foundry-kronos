@@ -126,8 +126,27 @@ same instant rather than moving it.
 | `⏪` `◀` `▶` `⏩` | Move by the selected unit; outer arrows move the configured multiple |
 | unit select | second, round (6s), minute, hour, day, month, year |
 | condition / temperature | GM click opens the weather override |
+| `📅` | Shows or hides the month |
 | `⚙` | Opens the module settings |
 | the tab on the border | Collapses and expands the panel, remembered per client |
+
+## The month
+
+The calendar button opens a month at a time under the readout row: a column per weekday of the calendar
+in force, a cell per day, and today outlined. Day 1 sits under the weekday it actually falls on, so the
+column headings mean something.
+
+**Clicking a day picks it; it does not move the clock.** A month is wide enough that one click could put
+the party three weeks forward, and every move of world time re-syncs scene darkness and weather and runs
+every other module's handler. Picking a day names it in the heading — with its festival, if it has one —
+and puts a small clock icon on it. That icon is the only thing in the grid that moves time, and it keeps
+the time of day.
+
+The arrows move a month at a time and never move the clock. Browsing away and letting the clock tick past
+a month boundary leaves you where you were reading rather than yanking you forward; the heading follows
+the clock only while you are still on the current month.
+
+GM only, like the button that opens it.
 
 ## Size
 
@@ -290,6 +309,7 @@ Query parameters put it in states a world is not currently in:
 | `?calendar=tarlan` | Another bundled calendar |
 | `?date=2025-06-21T14:30` | Any date; `?at=79200` takes a raw world time |
 | `?condition=storm` | Force a weather condition, to see every icon |
+| `?grid=1` | Open the month |
 | `?gallery=1` | The six size-by-collapse states, GM and player, plus every condition — for eyeballing a change |
 
 **What it cannot tell you.** Anything that only a running Foundry provides is absent and cannot be
@@ -328,3 +348,8 @@ would ship a font that silently draws a missing-glyph box.
 
 The symbols are addressed by codepoint rather than by ligature name, since a subset cut by codepoint
 carries no ligature table and writing the name would render the literal word.
+
+**After regenerating the font, hard-reload the harness.** A browser holds the old subset for the same
+URL, so a newly added glyph paints as an empty box and looks exactly like a missing one. The way to tell
+them apart is to draw the codepoint on a canvas and compare its ink against a codepoint known to be
+absent — advance width will not do it, because a missing-glyph box has a full advance of its own.

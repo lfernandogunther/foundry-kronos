@@ -143,6 +143,17 @@ async function mountGallery(base: PanelState): Promise<void> {
     ]),
     ["Weather off", { weather: false }],
     ["Tarlan, a festival at noon", { calendar: "tarlan", worldTime: Date.parse("2025-01-01T12:00:00Z") / 1000 }],
+    // The grid at each size, and in a calendar with months of its own.
+    ...["large", "medium", "small"].map(
+      (size): [string, Partial<PanelState>] => [
+        `${size} — the month`,
+        { size, grid: true, worldTime: Date.parse("2025-12-08T22:00:00Z") / 1000 },
+      ],
+    ),
+    [
+      "Tarlan — the month",
+      { grid: true, calendar: "tarlan", worldTime: Date.parse("2025-12-08T22:00:00Z") / 1000 },
+    ],
     ...WEATHER_CONDITIONS.map(
       (condition): [string, Partial<PanelState>] => [`Condition: ${condition}`, { condition, worldTime: 43_200 }],
     ),

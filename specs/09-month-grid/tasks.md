@@ -24,7 +24,7 @@ wrong is settled where it can be tested.
       time, through the same `advance` path as every other control. A test that a day cell carries no
       action that moves time, which is how this decision would regress
 
-- [ ] **5. The harness and the README** — `?grid=1`, the grid in the gallery for both calendars and all
+- [x] **5. The harness and the README** — `?grid=1`, the grid in the gallery for both calendars and all
       three sizes, and the README's controls table
 
 ## Verify
