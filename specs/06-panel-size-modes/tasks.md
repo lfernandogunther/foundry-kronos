@@ -10,7 +10,7 @@ is attributable. Task 2 lands before the sizes are measured, because it changes 
       every `var(--kronos-…)` used is a token that is defined. Large must come out pixel-identical —
       shown by the harness before and after, not assumed
 
-- [ ] **2. A player loses the timeline** — the timeline is built only for a GM, so a player's panel is
+- [x] **2. A player loses the timeline** — the timeline is built only for a GM, so a player's panel is
       one row: time, date, weather. `#timeline` loses its `isGM` parameter and both of the branches that
       depended on it, since the markers and the track's action are now unconditional. The player tests
       collapse from a list of absences to one assertion that also checks the row is still there, which
@@ -24,8 +24,10 @@ is attributable. Task 2 lands before the sizes are measured, because it changes 
 - [ ] **4. Medium and small values** — starting with the measurement the spec's open question asks for:
       the controls row's real width at every size, expanded and compact, GM and player, against the
       longest month and weekday names the bundled calendars contain. Then the two token sets, and
-      `min-width: max-content` as the floor. `tests/styles.test.ts` gains the check that all three blocks
-      define the same names
+      `min-width: max-content` as the floor. Also: a panel with no timeline sizes to its content —
+      the nominal width exists so the timeline can be a proportional bar, and a player has no bar, so
+      at 880 their single row is a mostly empty card. `tests/styles.test.ts` gains the check that all
+      three blocks define the same names
 
 - [ ] **5. What small gives up** — `data-target` on the timeline labels, then in CSS: no seconds line
       and no sunrise or sunset label at small. Plus whatever task 4's measurement showed is needed

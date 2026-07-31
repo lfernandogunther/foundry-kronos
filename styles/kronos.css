@@ -239,10 +239,7 @@
   background: linear-gradient(90deg, #05080c 0%, #2a3d1c 25%, #8a7a3b 50%, #2a3d1c 75%, #05080c 100%);
   border: 1px solid rgb(255 255 255 / 8%);
   border-radius: var(--kronos-track-radius);
-}
 
-/* Only a GM's track carries an action, and only theirs is interactive. */
-#foundry-kronos .kronos-track[data-action] {
   cursor: pointer;
 
   /* A drag on a touch screen must set the time, not scroll the page. */
@@ -267,7 +264,7 @@
   transition: transform 0.1s ease;
 }
 
-#foundry-kronos .kronos-track[data-action] .kronos-handle {
+#foundry-kronos .kronos-track .kronos-handle {
   cursor: grab;
 }
 

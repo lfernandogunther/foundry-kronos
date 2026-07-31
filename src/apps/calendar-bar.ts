@@ -122,37 +122,41 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
     wrapper.append(tab);
 
     const panel = element("div", "kronos-panel");
-    panel.append(this.#timeline(date, isGM), this.#controls(date, isGM));
+    // A player gets no timeline at all. It carried no control they could use, and the clock states
+    // the time in figures while the weather icon already shows whether the sun is up — so what was
+    // left was decoration on the half of the card that had to give way.
+    if (isGM) panel.append(this.#timeline(date));
+    panel.append(this.#controls(date, isGM));
     wrapper.append(panel);
 
     return wrapper;
   }
 
-  /** One in-world day, midnight to midnight, with the markers a GM can set the clock from. */
-  #timeline(date: WorldDate, isGM: boolean): HTMLElement {
+  /**
+   * One in-world day, midnight to midnight, with the markers to set the clock from.
+   *
+   * Built for a GM and nobody else, so nothing in here is conditional: the markers are always drawn
+   * and the track always carries its action. The `data-action` is also what keeps the panel-drag
+   * handler from treating the track as background.
+   */
+  #timeline(date: WorldDate): HTMLElement {
     const layout = timelineLayout(date, getLatitude());
     const container = element("div", "kronos-timeline");
 
-    if (isGM) {
-      const markers = element("div", "kronos-markers");
-      for (const entry of layout.markers) {
-        const marker = button(entry.icon, "set-time", t(entry.tooltip), {
-          minutes: String(entry.minutes),
-        });
-        marker.classList.add("kronos-marker");
-        marker.style.left = `${entry.percent}%`;
-        markers.append(marker);
-      }
-      container.append(markers);
+    const markers = element("div", "kronos-markers");
+    for (const entry of layout.markers) {
+      const marker = button(entry.icon, "set-time", t(entry.tooltip), {
+        minutes: String(entry.minutes),
+      });
+      marker.classList.add("kronos-marker");
+      marker.style.left = `${entry.percent}%`;
+      markers.append(marker);
     }
+    container.append(markers);
 
     const track = element("div", "kronos-track");
-    // A player's timeline reports the time; only a GM's sets it. The absent action is also what
-    // keeps the panel-drag handler from treating the track as a control.
-    if (isGM) {
-      track.dataset["action"] = "timeline";
-      track.title = t("KRONOS.Action.Timeline");
-    }
+    track.dataset["action"] = "timeline";
+    track.title = t("KRONOS.Action.Timeline");
 
     const handle = element("div", "kronos-handle");
     handle.style.left = `${layout.percent}%`;

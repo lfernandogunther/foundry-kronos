@@ -19,17 +19,31 @@ import { all, one, renderPanel } from "../helpers/panel.js";
 const EVENING = 79_200;
 
 describe("what a player is shown", () => {
+  it("has no timeline at all, and still has the row", async () => {
+    const panel = await renderPanel({ isGM: false, worldTime: EVENING });
+
+    // Paired on purpose. A bare "there are no markers" assertion passes just as happily when the
+    // render threw and the query found nothing at all, so the row is asserted alongside it.
+    expect(one(panel, ".kronos-timeline")).toBeNull();
+    expect(one(panel, ".kronos-track")).toBeNull();
+    expect(one(panel, ".kronos-handle")).toBeNull();
+    expect(all(panel, ".kronos-marker")).toHaveLength(0);
+    expect(all(panel, ".kronos-label")).toHaveLength(0);
+
+    expect(one(panel, ".kronos-controls")).not.toBeNull();
+    expect(one(panel, ".kronos-time")?.textContent).toBe("22:00");
+  });
+
   it("carries no control a player may not use", async () => {
     const panel = await renderPanel({ isGM: false });
 
     // Absent, not hidden: a disabled control someone can see is an invitation to ask the GM to
     // press it, and a CSS mistake would turn a hidden one back on.
-    expect(all(panel, ".kronos-marker")).toHaveLength(0);
     expect(all(panel, ".kronos-time-controls")).toHaveLength(0);
     expect(all(panel, ".kronos-settings")).toHaveLength(0);
     expect(all(panel, ".kronos-unit")).toHaveLength(0);
-    expect(one(panel, ".kronos-track")?.hasAttribute("data-action")).toBe(false);
     expect(all(panel, ".kronos-weather.kronos-clickable")).toHaveLength(0);
+    expect(all(panel, "[data-action]").map((el) => el.dataset["action"])).toEqual(["toggle-compact"]);
   });
 
   it("still reports the time, the date and the weather", async () => {
@@ -38,7 +52,7 @@ describe("what a player is shown", () => {
     expect(one(panel, ".kronos-time")?.textContent).toBe("22:00");
     expect(one(panel, ".kronos-datum")?.textContent).toMatch(/^01 \w+ \(\d+\)$/);
     expect(one(panel, ".kronos-weather")).not.toBeNull();
-    expect(one(panel, ".kronos-handle")).not.toBeNull();
+    expect(one(panel, ".kronos-tag-season")).not.toBeNull();
   });
 
   it("can still collapse its own panel", async () => {
