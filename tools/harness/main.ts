@@ -18,6 +18,7 @@ import { isWeatherCondition, WEATHER_CONDITIONS } from "../../src/weather/genera
 
 interface PanelState {
   isGM: boolean;
+  size: string;
   compact: boolean;
   weather: boolean;
   calendar: string;
@@ -52,6 +53,7 @@ function worldTimeFromParams(): number {
 function requested(): PanelState {
   return {
     isGM: params.get("player") !== "1",
+    size: params.get("size") ?? "large",
     compact: params.get("compact") === "1",
     weather: params.get("weather") !== "0",
     calendar: params.get("calendar") ?? "golarion-ar",
@@ -68,6 +70,7 @@ async function build(state: PanelState): Promise<HTMLElement> {
   // Falls back with a warning on an unknown id, which is the behaviour a world gets too.
   setCalendar(bundledCalendar(state.calendar));
 
+  settings.set(`${MODULE_ID}.barSize`, state.size);
   settings.set(`${MODULE_ID}.barCompact`, state.compact);
   settings.set(`${MODULE_ID}.weatherEnabled`, state.weather);
   settings.set(`${MODULE_ID}.clockRunning`, true);

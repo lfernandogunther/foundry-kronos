@@ -127,6 +127,15 @@
 
   position: relative;
   width: var(--kronos-width);
+
+  /*
+   * A nominal width with a floor under it. The panel is its size unless its own contents need more,
+   * in which case it grows rather than spilling over its border. Not hypothetical: at every size the
+   * collapsed row needs more room than the collapsed width allows, and it has been doing so since
+   * collapsing was added.
+   */
+  min-width: max-content;
+
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   color: var(--kronos-text);
@@ -135,6 +144,156 @@
 
   /* Dragging the panel should not select its text. */
   user-select: none;
+}
+
+/*
+ * The two smaller sets. Same names, different values — no rule below knows a size exists.
+ *
+ * Spacing runs at about 0.72 and 0.5 of large; text at 0.85 and 0.7, and never below 0.6rem. Written
+ * out rather than derived with calc() from one factor, because a derived set cannot have a floor and
+ * because these are numbers a designer has to be able to move.
+ */
+#foundry-kronos .kronos-wrapper.kronos-size-medium {
+  --kronos-width: 660px;
+  --kronos-width-compact: 420px;
+  --kronos-panel-padding: 16px 14px;
+  --kronos-panel-padding-compact: 9px 10px;
+  --kronos-panel-radius: 10px;
+  --kronos-panel-shadow: 0 6px 23px rgb(0 0 0 / 60%);
+
+  --kronos-tab-width: 17px;
+  --kronos-tab-height: 32px;
+  --kronos-tab-top: 13px;
+  --kronos-tab-radius: 6px;
+  --kronos-tab-shadow: 3px 1px 6px rgb(0 0 0 / 40%);
+
+  --kronos-timeline-margin: 22px 11px;
+  --kronos-markers-top: -19px;
+  --kronos-markers-height: 14px;
+  --kronos-track-height: 7px;
+  --kronos-track-radius: 4px;
+  --kronos-handle-size: 14px;
+  --kronos-handle-border: 2px;
+  --kronos-handle-glow: 9px;
+  --kronos-labels-height: 14px;
+  --kronos-labels-gap: 6px;
+  --kronos-label-size: 0.62rem;
+
+  --kronos-row-padding: 9px 12px;
+  --kronos-row-padding-compact: 5px 8px;
+  --kronos-row-gap: 9px;
+  --kronos-row-gap-compact: 8px;
+  --kronos-row-radius: 7px;
+  --kronos-divider-padding: 12px;
+
+  --kronos-clock-size: 1.87rem;
+  --kronos-clock-size-compact: 1.4rem;
+  --kronos-seconds-size: 0.62rem;
+  --kronos-weekday-size: 0.62rem;
+  --kronos-weekday-spacing: 0.8px;
+  --kronos-date-size: 0.95rem;
+  --kronos-date-size-compact: 0.85rem;
+
+  --kronos-tags-gap: 4px;
+  --kronos-tags-top: 3px;
+  --kronos-tag-size: 0.6rem;
+  --kronos-tag-padding: 2px 5px;
+  --kronos-tag-radius: 3px;
+  --kronos-festival-gap: 2px;
+  --kronos-festival-icon-size: 0.75rem;
+
+  --kronos-weather-padding: 5px 9px;
+  --kronos-weather-gap: 7px;
+  --kronos-weather-radius: 5px;
+  --kronos-weather-size: 0.7rem;
+  --kronos-condition-size: 0.62rem;
+
+  --kronos-icon-size: 1rem;
+  --kronos-button-padding: 4px;
+  --kronos-button-radius: 4px;
+  --kronos-controls-padding: 3px 5px;
+  --kronos-controls-gap: 2px;
+  --kronos-controls-radius: 5px;
+  --kronos-unit-size: 0.66rem;
+  --kronos-unit-padding: 3px 6px;
+  --kronos-unit-padding-compact: 2px 3px;
+  --kronos-unit-margin: 3px;
+  --kronos-settings-gap: 3px;
+  --kronos-settings-padding: 6px;
+}
+
+#foundry-kronos .kronos-wrapper.kronos-size-small {
+  --kronos-width: 440px;
+  --kronos-width-compact: 340px;
+  --kronos-panel-padding: 11px 10px;
+  --kronos-panel-padding-compact: 6px 7px;
+  --kronos-panel-radius: 8px;
+  --kronos-panel-shadow: 0 4px 16px rgb(0 0 0 / 60%);
+
+  --kronos-tab-width: 12px;
+  --kronos-tab-height: 22px;
+  --kronos-tab-top: 9px;
+  --kronos-tab-radius: 4px;
+  --kronos-tab-shadow: 2px 1px 4px rgb(0 0 0 / 40%);
+
+  --kronos-timeline-margin: 15px 8px;
+  --kronos-markers-top: -13px;
+  --kronos-markers-height: 10px;
+  --kronos-track-height: 5px;
+  --kronos-track-radius: 3px;
+  --kronos-handle-size: 11px;
+  --kronos-handle-border: 1.5px;
+  --kronos-handle-glow: 6px;
+  --kronos-labels-height: 11px;
+  --kronos-labels-gap: 4px;
+  --kronos-label-size: 0.6rem;
+
+  --kronos-row-padding: 6px 8px;
+  --kronos-row-padding-compact: 4px 6px;
+  --kronos-row-gap: 5px;
+  --kronos-row-gap-compact: 5px;
+  --kronos-row-radius: 6px;
+  --kronos-divider-padding: 6px;
+
+  /*
+   * The clock and the date take a deeper cut than the 0.7 the rest of the text runs at. They are the
+   * two widest things in the row, and this is measured: at 1.55rem and 0.8rem the row needs 454px
+   * where 416 exist, and the difference has to come from somewhere that is not a control.
+   */
+  --kronos-clock-size: 1.35rem;
+  --kronos-clock-size-compact: 1.15rem;
+  --kronos-seconds-size: 0.6rem;
+  --kronos-weekday-size: 0.6rem;
+  --kronos-weekday-spacing: 0.5px;
+  --kronos-date-size: 0.75rem;
+  --kronos-date-size-compact: 0.75rem;
+
+  --kronos-tags-gap: 3px;
+  --kronos-tags-top: 2px;
+  --kronos-tag-size: 0.6rem;
+  --kronos-tag-padding: 1px 4px;
+  --kronos-tag-radius: 2px;
+  --kronos-festival-gap: 2px;
+  --kronos-festival-icon-size: 0.7rem;
+
+  --kronos-weather-padding: 3px 6px;
+  --kronos-weather-gap: 5px;
+  --kronos-weather-radius: 4px;
+  --kronos-weather-size: 0.65rem;
+  --kronos-condition-size: 0.6rem;
+
+  --kronos-icon-size: 0.85rem;
+  --kronos-button-padding: 3px;
+  --kronos-button-radius: 3px;
+  --kronos-controls-padding: 2px 4px;
+  --kronos-controls-gap: 1px;
+  --kronos-controls-radius: 4px;
+  --kronos-unit-size: 0.6rem;
+  --kronos-unit-padding: 2px 4px;
+  --kronos-unit-padding-compact: 1px 3px;
+  --kronos-unit-margin: 2px;
+  --kronos-settings-gap: 2px;
+  --kronos-settings-padding: 4px;
 }
 
 #foundry-kronos .kronos-panel {
@@ -489,6 +648,18 @@
 
 #foundry-kronos .kronos-wrapper.kronos-compact {
   width: var(--kronos-width-compact);
+}
+
+/*
+ * A panel with no timeline sizes to its content.
+ *
+ * The nominal width exists so the timeline can be a bar proportional to the day. A player has no bar,
+ * so at 880 their single row of three blocks is a mostly empty card. Both states are named rather than
+ * relying on source order, so this cannot be undone by moving a rule.
+ */
+#foundry-kronos .kronos-wrapper:not(:has(.kronos-timeline)),
+#foundry-kronos .kronos-wrapper.kronos-compact:not(:has(.kronos-timeline)) {
+  width: max-content;
 }
 
 #foundry-kronos .kronos-compact .kronos-timeline,

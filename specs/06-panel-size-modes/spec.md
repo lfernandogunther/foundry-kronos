@@ -118,10 +118,18 @@ control. See the open question.
 
 ## Open questions
 
-1. **Does the small controls row fit in 440px?** To be measured in the harness at the start of task 3,
-   before any control is removed. If it does not fit, the long-step arrows go first and the condition
-   text second — but that is a decision to take against a measurement, and it is flagged here so it is
-   not taken quietly.
+1. ~~**Does the small controls row fit in 440px?**~~ **Measured: no.** The row needs 505px where 416
+   exist — 89 over, which the estimate above had at 507. Removing the long-step arrows takes it to 48
+   over and the condition text to 38 over. Deepening the cut on the clock and the date, the two widest
+   things in the row, closes it to 14. Removing the seconds line changes it by **nothing**, measured,
+   which is the point the estimate was making: it is stacked vertically and buys height, not width.
+
+   So small carries the two content cuts, and the residual is absorbed by the width floor rather than
+   by taking a control away or pushing text under the readable floor.
+
+   The measurement also turned up something that was already shipped: **the collapsed panel has been
+   overflowing its own width since collapsing was added** — by 28px at large. The floor fixes it, which
+   makes the collapsed panel wider than its nominal width at every size.
 
 ## Notes
 
