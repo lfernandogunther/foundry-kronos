@@ -1,6 +1,11 @@
 # 09 — The month grid (pre-spec)
 
-Not a spec yet. What it is, what is already settled, and what has to be answered before one is written.
+**Superseded by `spec.md` in this folder.** Kept as the record of what was asked before it was decided.
+
+One thing in it was wrong and is worth flagging rather than quietly deleting: it named "the world time a
+given year/month/day begins at" as a genuinely new arithmetic. It is not — `reckoning.worldTimeAt`,
+`pf2e-clock.utcMsToWorldTime` and `gregorian.daysInMonth` all already exist, written for the step and jump
+controls. Reading the code before estimating would have caught it.
 
 ## What
 

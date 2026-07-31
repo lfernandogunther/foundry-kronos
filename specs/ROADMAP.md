@@ -27,7 +27,7 @@ first, written down so it is not re-derived at the keyboard.
 | --- | --- | --- | --- | --- | --- |
 | 07 | Brazilian Portuguese | ours | S | — | **backlog** |
 | 08 | Size and collapse from the panel | ours | S | — | **backlog** |
-| 09 | The month grid | design | M | — | pre-spec |
+| 09 | The month grid | design | M | — | **spec written** |
 | 10 | Day notes | design | M | 09 for where they show | pre-spec |
 | 11 | Export and import a calendar | design | S | — | pre-spec |
 | 12 | Calendars as world data, and the wizard | design | **L** | 11 | pre-spec |
@@ -69,13 +69,14 @@ background. The last is probably right — it is invisible until wanted and cost
 
 Small, and it makes the 0.4.0 feature actually discoverable.
 
-## 09 — The month grid → [pre-spec](09-month-grid/pre-spec.md)
+## 09 — The month grid → [spec](09-month-grid/spec.md)
 
-The view behind the reference's `calendar_month` button. Needs one genuinely new arithmetic: the world
-time a given year/month/day begins at, which is the inverse of what `reckoning.ts` does today.
+Specced. Clicking a day selects it and moves nothing; an explicit control on the cell moves the clock.
+Cell shows the day number and today. GM only. Scales with the size tokens.
 
-**The argument to have first:** does clicking a day move world time, or only navigate? The reference
-moves, and this is the first place in the module where one click can move time by weeks.
+The pre-spec was wrong about the cost: the inverse arithmetic already exists, so this is cheaper than M.
+And the reference is wrong about the grid — it renders weekday headers but lists days with no leading
+offset, making its columns decorative. We align day 1 to its weekday.
 
 ## 10 — Day notes → [pre-spec](10-day-notes/pre-spec.md)
 
