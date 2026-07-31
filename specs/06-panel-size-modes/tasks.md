@@ -35,7 +35,7 @@ is attributable. Task 2 lands before the sizes are measured, because it changes 
       number to justify it. A test that the cuts are not structural: the markup is identical at every
       size
 
-- [ ] **6. The harness and the README** — `?size=` on the harness and all six states in its gallery;
+- [x] **6. The harness and the README** — `?size=` on the harness and all six states in its gallery;
       the README's controls table and development section covering the setting, what small drops, and
       the player's panel no longer carrying a timeline. The diagram at the top of the README currently
       shows a player seeing the timeline and has to stop saying that

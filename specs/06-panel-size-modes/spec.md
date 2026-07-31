@@ -131,6 +131,23 @@ control. See the open question.
    overflowing its own width since collapsing was added** — by 28px at large. The floor fixes it, which
    makes the collapsed panel wider than its nominal width at every size.
 
+## Measured, once it was built
+
+Every state, with the bundled Golarion calendar and the English unit labels. Nothing overflows
+anywhere; the nominal width is a floor the panel may exceed, never a box it is clipped into.
+
+| | GM | GM, collapsed | Player | Player, collapsed |
+| --- | --- | --- | --- | --- |
+| large | 880 | 558 | 493 | 315 |
+| medium | 664 | 469 | 404 | 268 |
+| small | **462** | 384 | 292 | 216 |
+
+A GM at small lands at 462 rather than 440 — 5% over the target. Closing that last 22px would mean
+taking away the year, a control, or the readable floor on text, and none of those looked worth it
+against 22 pixels. A player at small is 292, which is a third of what the panel was.
+
+The smallest text rendered anywhere at small measures 9.6px, which is exactly the `0.6rem` floor.
+
 ## Notes
 
 The compact widths in the table are starting points. The binding constraint is content, not a number

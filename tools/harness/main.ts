@@ -127,11 +127,16 @@ async function mountGallery(base: PanelState): Promise<void> {
   container.className = "harness-gallery";
   document.body.append(container);
 
+  // The six size-by-collapse states first, GM and player, because that is the grid a size change has
+  // to be judged against.
+  const sizes = ["large", "medium", "small"];
   const cases: [string, Partial<PanelState>][] = [
-    ["GM, expanded", {}],
-    ["GM, collapsed", { compact: true }],
-    ["Player", { isGM: false }],
-    ["Player, collapsed", { isGM: false, compact: true }],
+    ...sizes.flatMap((size): [string, Partial<PanelState>][] => [
+      [`${size} — GM`, { size }],
+      [`${size} — GM, collapsed`, { size, compact: true }],
+      [`${size} — player`, { size, isGM: false }],
+      [`${size} — player, collapsed`, { size, isGM: false, compact: true }],
+    ]),
     ["Weather off", { weather: false }],
     ["Tarlan, a festival at noon", { calendar: "tarlan", worldTime: Date.parse("2025-01-01T12:00:00Z") / 1000 }],
     ...WEATHER_CONDITIONS.map(

@@ -18,9 +18,10 @@ temperature, with GM controls for moving time. Built for the Pathfinder 2e syste
  └──────────────────────────────────────────────────────────────┘
 ```
 
-The timeline is one in-world day. Players see it and the readouts; the marker buttons, the handle and
-the control panel are GM-only. The tab on the right border collapses the panel to a narrow strip, per
-client. Drag the panel by its background to move it, and it stays where you put it.
+The timeline is one in-world day, and it is GM-only — a player sees the readouts alone, on a panel that
+sizes itself to them. The tab on the right border collapses the panel to a narrow strip, and the
+*Panel size* setting picks how big it is to begin with. Both are per client. Drag the panel by its
+background to move it, and it stays where you put it.
 
 ## Installing
 
@@ -127,6 +128,30 @@ same instant rather than moving it.
 | condition / temperature | GM click opens the weather override |
 | `⚙` | Opens the module settings |
 | the tab on the border | Collapses and expands the panel, remembered per client |
+
+## Size
+
+The panel comes in three, chosen per client in the module settings:
+
+| | Width | |
+| --- | --- | --- |
+| **large** | 880px | What the module looked like before sizes existed |
+| **medium** | 660px | The default |
+| **small** | 440px | About half, and prints less |
+
+Size and the collapse tab are separate ideas: size is how much room the panel may take, the tab is how
+much you want to see right now. So there are six states, and each size has its own collapsed width.
+
+**Small gives things up**, because at that width the controls do not all fit. It drops the long-step
+arrows — which collapsing already hides — the condition name beside the temperature, the seconds under
+the clock, and the sunrise and sunset times under the timeline. The five markers stay, and so do the
+season and festival tags.
+
+Every width is a nominal one with a floor under it: a panel is its size unless its own contents need
+more, in which case it grows rather than clipping them. A calendar with long month names, or a
+translation with long unit labels, therefore makes the panel wider instead of breaking it. A GM's small
+panel lands around 460px for that reason, and a player's is narrower than any of the numbers above
+because it has no timeline to keep a proportional width for.
 
 Everything on the timeline works **inside the day it is already**, and may therefore move time
 backwards: dragging the handle left moves the clock left, and asking for sunrise at ten at night
@@ -258,13 +283,14 @@ Query parameters put it in states a world is not currently in:
 
 | | |
 | --- | --- |
+| `?size=small` | `small`, `medium` or `large` |
 | `?player=1` | What a non-GM sees |
 | `?compact=1` | Collapsed |
 | `?weather=0` | Weather switched off |
 | `?calendar=tarlan` | Another bundled calendar |
 | `?date=2025-06-21T14:30` | Any date; `?at=79200` takes a raw world time |
 | `?condition=storm` | Force a weather condition, to see every icon |
-| `?gallery=1` | Every state above at once, for eyeballing a change |
+| `?gallery=1` | The six size-by-collapse states, GM and player, plus every condition — for eyeballing a change |
 
 **What it cannot tell you.** Anything that only a running Foundry provides is absent and cannot be
 mocked honestly — the `DialogV2` frame, the settings sheet the gear opens, hooks firing,
