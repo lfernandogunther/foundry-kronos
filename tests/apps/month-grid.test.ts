@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { monthView } from "../../src/apps/month-grid.js";
 import { BUNDLED_CALENDAR, bundledCalendar, setCalendar } from "../../src/time/calendar.js";
-import { getWorldDate, worldTimeAtDate } from "../../src/time/clock.js";
+import { dayKeyAt, getWorldDate, worldTimeAtDate } from "../../src/time/clock.js";
 
 /** The test world was created at the Unix epoch, so a world time is seconds since 1970. */
 const at = (y: number, m: number, d: number): number => Date.UTC(y, m - 1, d) / 1000;
@@ -121,5 +121,30 @@ describe("the selection", () => {
     for (const selected of [0, -3]) {
       expect(monthView(4725, 12, golarionToday, selected).selected, String(selected)).toBeNull();
     }
+  });
+});
+
+describe("the note marker", () => {
+  it("marks only the day a key in the map names", () => {
+    const key = dayKeyAt(4725, 12, 20);
+    const view = monthView(4725, 12, golarionToday, null, { [key]: "The party is due back." });
+    expect(view.days.filter((entry) => entry.hasNote).map((entry) => entry.day)).toEqual([20]);
+  });
+
+  it("marks nothing when the map is empty", () => {
+    const view = monthView(4725, 12, golarionToday, null, {});
+    expect(view.days.some((entry) => entry.hasNote)).toBe(false);
+  });
+
+  it("does not mark a key present but blank", () => {
+    const key = dayKeyAt(4725, 12, 20);
+    const view = monthView(4725, 12, golarionToday, null, { [key]: "   " });
+    expect(view.days.some((entry) => entry.hasNote)).toBe(false);
+  });
+
+  it("does not mark a day in a different month, even under the same key namespace", () => {
+    const key = dayKeyAt(4725, 11, 20);
+    const view = monthView(4725, 12, golarionToday, null, { [key]: "November's note" });
+    expect(view.days.some((entry) => entry.hasNote)).toBe(false);
   });
 });

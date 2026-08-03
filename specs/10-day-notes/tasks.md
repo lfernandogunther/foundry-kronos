@@ -10,7 +10,7 @@ everything after it is markup hung off a fact that already works.
       `getWorldDate(worldTimeAtDate(...)).dayKey`. `src/time/notes.ts`: `noteFor`, `setNote` (trims;
       clears rather than stores when empty), `clearNote`
 
-- [ ] **2. The marker, as data** — `MonthDay.hasNote` in `src/apps/month-grid.ts`; `monthView` takes the
+- [x] **2. The marker, as data** — `MonthDay.hasNote` in `src/apps/month-grid.ts`; `monthView` takes the
       notes map as a parameter rather than reading settings itself. Tests: only the day named by a key in
       the map is marked; a blank entry in the map marks nothing
 

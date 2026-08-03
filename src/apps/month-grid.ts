@@ -1,5 +1,6 @@
 import { getCalendar } from "../time/calendar.js";
-import { monthShape, type WorldDate } from "../time/clock.js";
+import { dayKeyAt, monthShape, type WorldDate } from "../time/clock.js";
+import { hasNote as dayHasNote } from "../time/notes.js";
 
 /**
  * A month laid out for a grid: the columns it has, how many cells precede day 1, and the days.
@@ -15,6 +16,7 @@ export interface MonthDay {
   /** The day the clock is on, and only when the month on screen is the one it is in. */
   isToday: boolean;
   isSelected: boolean;
+  hasNote: boolean;
 }
 
 export interface MonthView {
@@ -34,8 +36,16 @@ export interface MonthView {
 /**
  * @param selected a day number from an earlier view, or null. Dropped rather than clamped when this
  * month is too short for it: a clamped selection quietly means a different day than the one clicked.
+ * @param notes the day-notes map, passed in rather than read from settings so this stays a pure
+ * function of its arguments.
  */
-export function monthView(year: number, month: number, today: WorldDate, selected: number | null): MonthView {
+export function monthView(
+  year: number,
+  month: number,
+  today: WorldDate,
+  selected: number | null,
+  notes: Record<string, string> = {},
+): MonthView {
   const calendar = getCalendar();
   const shape = monthShape(year, month);
 
@@ -53,6 +63,7 @@ export function monthView(year: number, month: number, today: WorldDate, selecte
       day: index + 1,
       isToday: showsToday && today.day === index + 1,
       isSelected: keptSelection === index + 1,
+      hasNote: dayHasNote(notes, dayKeyAt(shape.year, shape.month, index + 1)),
     })),
   };
 }
