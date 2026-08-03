@@ -37,6 +37,7 @@ export const ICON = {
   nextMonth: glyph("chevron_right"),
   /** Moves the clock to the selected day: a clock face, because it moves time and not the view. */
   goToDay: glyph("schedule"),
+  editNote: glyph("edit_note"),
 } as const;
 
 const CONDITION_SYMBOLS: Readonly<Record<WeatherCondition, SymbolName>> = {

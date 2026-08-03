@@ -934,7 +934,8 @@
 }
 
 .kronos-modal:has(.window-content) input,
-.kronos-modal:has(.window-content) select {
+.kronos-modal:has(.window-content) select,
+.kronos-modal:has(.window-content) textarea {
   padding: 8px 10px;
   background: var(--kronos-inset);
   border: 1px solid var(--kronos-card-border);
@@ -985,4 +986,11 @@
 
 .kronos-override label {
   flex: 0 0 9rem;
+}
+
+.kronos-note textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  font-family: inherit;
 }

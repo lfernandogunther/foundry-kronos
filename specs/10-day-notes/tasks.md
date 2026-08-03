@@ -14,7 +14,7 @@ everything after it is markup hung off a fact that already works.
       notes map as a parameter rather than reading settings itself. Tests: only the day named by a key in
       the map is marked; a blank entry in the map marks nothing
 
-- [ ] **3. The edit modal** — `src/apps/day-note.ts`, a `DialogV2.wait` form with a textarea, Save, and a
+- [x] **3. The edit modal** — `src/apps/day-note.ts`, a `DialogV2.wait` form with a textarea, Save, and a
       Delete button shown only when a note already exists — the same shape as `weather-override.ts`.
       The current text escaped going into the form, so a note containing `<` or `&` cannot break the
       dialog's markup. One new glyph checked into `icons.json` against the upstream codepoint table and

@@ -47,7 +47,12 @@ describe("the stylesheet", () => {
     const strays = parsed
       .map((rule) => rule.selector)
       .filter((selector) => !selector.includes("#foundry-kronos"))
-      .filter((selector) => !selector.includes(".kronos-modal") && !selector.includes(".kronos-override"));
+      .filter(
+        (selector) =>
+          !selector.includes(".kronos-modal") &&
+          !selector.includes(".kronos-override") &&
+          !selector.includes(".kronos-note"),
+      );
 
     expect(strays).toEqual([]);
   });
@@ -99,10 +104,13 @@ describe("the override dialog's styling", () => {
     expect(tokens?.selector).toBe(".kronos-modal");
   });
 
-  it("does not gate the form this module injects itself", () => {
-    // `.kronos-override` is on our own markup, so it cannot be a wrong guess and must always apply.
-    const ours = parsed.filter((rule) => rule.selector.includes(".kronos-override"));
-    expect(ours.length).toBeGreaterThan(0);
-    for (const rule of ours) expect(rule.selector, rule.selector).not.toContain(GATE);
+  it("does not gate a form this module injects itself", () => {
+    // `.kronos-override` and `.kronos-note` are on our own markup, so neither can be a wrong guess
+    // and both must always apply.
+    for (const own of [".kronos-override", ".kronos-note"]) {
+      const ours = parsed.filter((rule) => rule.selector.includes(own));
+      expect(ours.length, own).toBeGreaterThan(0);
+      for (const rule of ours) expect(rule.selector, rule.selector).not.toContain(GATE);
+    }
   });
 });
