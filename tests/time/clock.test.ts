@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { BUNDLED_CALENDAR, type CalendarDefinition, parseCalendar, setCalendar } from "../../src/time/calendar.js";
 import {
+  dayKeyAt,
   describeGregorian,
   getWorldDate,
   monthsInYear,
@@ -334,5 +335,13 @@ describe("a calendar anchored to the present", () => {
       expect(date.day).toBeGreaterThanOrEqual(1);
     }
     expect(getWorldDate(ANCHOR + 365 * DAY)).toMatchObject({ year: 1001, month: 1, day: 1 });
+  });
+
+  it("agrees with the key resolving the same date would carry, without a time of day", () => {
+    setCalendar(tarlan);
+    expect(dayKeyAt(1000, 7, 15)).toBe(getWorldDate(worldTimeAtDate(1000, 7, 15)).dayKey);
+
+    setCalendar(BUNDLED_CALENDAR);
+    expect(dayKeyAt(4725, 12, 8)).toBe(getWorldDate(worldTimeAtDate(4725, 12, 8)).dayKey);
   });
 });

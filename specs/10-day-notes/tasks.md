@@ -3,7 +3,7 @@
 One commit per item. Storage lands first and alone, since it is the thing the pre-spec argued over —
 everything after it is markup hung off a fact that already works.
 
-- [ ] **1. Storage, and the key that names a day without a time of day** — `SETTINGS.dayNotes` in
+- [x] **1. Storage, and the key that names a day without a time of day** — `SETTINGS.dayNotes` in
       `src/settings.ts` (world scope, not in the config sheet, default `{}`), with `getDayNotes` /
       `setDayNotes`. `dayKeyAt(year, month, day)` in `src/time/clock.ts`, dispatching on whether the
       calendar owns its months, tested against both backends by agreeing with

@@ -30,6 +30,7 @@ export const SETTINGS = {
   barCompact: "barCompact",
   barSize: "barSize",
   stepUnit: "stepUnit",
+  dayNotes: "dayNotes",
 } as const;
 
 /** Persisted only when a GM overrides the generated weather; ordinary days are derived, not stored. */
@@ -207,6 +208,7 @@ export function registerSettings(onBarRefresh: () => void, onClockRefresh: () =>
   register(SETTINGS.weatherOverride, { scope: "world", config: false, type: Object, default: null, onChange: onBarRefresh });
   register(SETTINGS.climate, { scope: "world", config: false, type: Object, default: TEMPERATE_EUROPE });
   register(SETTINGS.weatherEffectMap, { scope: "world", config: false, type: Object, default: {} });
+  register(SETTINGS.dayNotes, { scope: "world", config: false, type: Object, default: {} });
   register(SETTINGS.barPosition, { scope: "client", config: false, type: Object, default: null });
   // Per client: how much of the panel someone wants on their own screen is not a world decision.
   register(SETTINGS.barCompact, { scope: "client", config: false, type: Boolean, default: false });
@@ -304,6 +306,14 @@ export function getWeatherEffectMap(): Record<string, string> {
 
 export const setWeatherEffectMap = (map: Record<string, string>): Promise<unknown> =>
   game.settings.set(MODULE_ID, SETTINGS.weatherEffectMap, map);
+
+export function getDayNotes(): Record<string, string> {
+  const value = read(SETTINGS.dayNotes);
+  return typeof value === "object" && value !== null ? (value as Record<string, string>) : {};
+}
+
+export const setDayNotes = (notes: Record<string, string>): Promise<unknown> =>
+  game.settings.set(MODULE_ID, SETTINGS.dayNotes, notes);
 
 export function getBarPosition(): BarPosition | null {
   const value = read(SETTINGS.barPosition);

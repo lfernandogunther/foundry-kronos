@@ -257,6 +257,20 @@ export function worldTimeAtDate(year: number, month: number, day: number, second
 }
 
 /**
+ * The key a day would carry, without resolving a time of day for it.
+ *
+ * `worldTimeAtDate` exists because moving the clock needs a world time; a note or a grid marker only
+ * ever needs the key, and `dayKeyFor` never depended on the time of day. `year` is the year as
+ * *displayed*, matching `worldTimeAtDate`.
+ */
+export function dayKeyAt(year: number, month: number, day: number): string {
+  const calendar = getCalendar();
+  if (hasOwnMonths(calendar)) return dayKeyFor(calendar.name, year, month, day);
+  // The underlying Gregorian year, not the displayed one — see describeGregorian's own dayKey.
+  return dayKeyFor("", year - calendar.yearOffset, month, day);
+}
+
+/**
  * A UTC instant from a displayed date, over the Gregorian structure.
  *
  * Built through `setUTCFullYear` rather than `Date.UTC`, which maps a year between 0 and 99 into the
