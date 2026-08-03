@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { ICON } from "../../src/apps/icons.js";
 import { BAR_SIZES } from "../../src/apps/size.js";
+import { getWorldDate } from "../../src/time/clock.js";
 import { STEP_UNITS } from "../../src/time/units.js";
 import { all, one, renderPanel } from "../helpers/panel.js";
 
@@ -190,6 +191,35 @@ describe("the month grid", () => {
     const anchor = Date.parse("2025-01-05T12:00:00Z") / 1000;
     const picked = await renderPanel({ calendar: "tarlan", grid: true, selectedDay: 1, worldTime: anchor });
     expect(one(picked, ".kronos-grid-heading")?.textContent).toContain("Renewal");
+  });
+
+  it("offers the note control only on the picked day, without moving time", async () => {
+    const none = await renderPanel({ grid: true, worldTime: at(2025, 12, 8) });
+    expect(all(none, '[data-action="edit-note"]')).toHaveLength(0);
+
+    const picked = await renderPanel({ grid: true, selectedDay: 20, worldTime: at(2025, 12, 8) });
+    const note = all(picked, '[data-action="edit-note"]');
+    expect(note).toHaveLength(1);
+    expect(note[0]?.dataset["day"]).toBe("20");
+    expect(note[0]?.closest<HTMLElement>(".kronos-grid-day")?.dataset["day"]).toBe("20");
+
+    // And nothing inside a picked cell moves time except go-to-day.
+    const movers = all(picked, ".kronos-grid [data-action]").map((el) => el.dataset["action"]);
+    expect([...new Set(movers)].sort()).toEqual(["edit-note", "go-to-day", "month", "select-day"]);
+  });
+
+  it("marks a day carrying a note, distinct from today and the selection", async () => {
+    const key = getWorldDate(at(2025, 12, 20)).dayKey;
+    const panel = await renderPanel({
+      grid: true,
+      worldTime: at(2025, 12, 8),
+      settings: { dayNotes: { [key]: "The party is due back." } },
+    });
+
+    const marked = all(panel, ".kronos-grid-day.kronos-has-note");
+    expect(marked).toHaveLength(1);
+    expect(marked[0]?.dataset["day"]).toBe("20");
+    expect(marked[0]?.classList.contains("kronos-today")).toBe(false);
   });
 });
 

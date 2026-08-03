@@ -42,6 +42,7 @@
   "KRONOS.Action.NextMonth": "Next month",
   "KRONOS.Action.SelectDay": "Pick this day",
   "KRONOS.Action.GoToDay": "Set the clock to this day, keeping the time",
+  "KRONOS.Action.EditNote": "Write a note for this day",
   "KRONOS.Action.OverrideWeather": "Set today's weather",
   "KRONOS.Clock.Run": "Start time",
   "KRONOS.Clock.Pause": "Stop time (the game keeps running)",

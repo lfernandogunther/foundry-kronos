@@ -2,6 +2,7 @@ import { MODULE_ID } from "../constants.js";
 import {
   getBarPosition,
   getBarSize,
+  getDayNotes,
   getLatitude,
   getStepMultiplier,
   getStepUnit,
@@ -13,12 +14,20 @@ import {
   setClockRunning,
   setStepUnit,
 } from "../settings.js";
-import { getWorldDate, normaliseMonth, secondsToTimeOfDay, worldTimeAtDate, type WorldDate } from "../time/clock.js";
+import {
+  dayKeyAt,
+  getWorldDate,
+  normaliseMonth,
+  secondsToTimeOfDay,
+  worldTimeAtDate,
+  type WorldDate,
+} from "../time/clock.js";
 import { isDaylight } from "../time/sun.js";
 import { haltReason } from "../time/ticker.js";
 import { isStepUnit, STEP_UNITS, type StepUnit, stepSeconds } from "../time/units.js";
 import { temperatureAt } from "../weather/generator.js";
 import { weatherFor } from "../weather/state.js";
+import { openDayNoteEditor } from "./day-note.js";
 import { ICON, weatherIcon } from "./icons.js";
 import { monthView } from "./month-grid.js";
 import { sizeClass } from "./size.js";
@@ -213,7 +222,7 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
    */
   #monthGrid(date: WorldDate): HTMLElement {
     const showing = this.grid.viewedMonth ?? { year: date.year, month: date.month };
-    const view = monthView(showing.year, showing.month, date, this.grid.selectedDay);
+    const view = monthView(showing.year, showing.month, date, this.grid.selectedDay, getDayNotes());
 
     const section = element("div", "kronos-grid");
 
@@ -246,12 +255,18 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
       cell.dataset["day"] = String(entry.day);
       cell.classList.toggle("kronos-today", entry.isToday);
       cell.classList.toggle("kronos-selected", entry.isSelected);
+      cell.classList.toggle("kronos-has-note", entry.hasNote);
       cell.append(element("span", "kronos-grid-number", String(entry.day)));
 
       if (entry.isSelected) {
         const go = button(ICON.goToDay, "go-to-day", t("KRONOS.Action.GoToDay"), { day: String(entry.day) });
         go.classList.add("kronos-grid-go");
-        cell.append(go);
+        const note = button(ICON.editNote, "edit-note", t("KRONOS.Action.EditNote"), { day: String(entry.day) });
+        note.classList.add("kronos-grid-note");
+
+        const actions = element("div", "kronos-grid-actions");
+        actions.append(go, note);
+        cell.append(actions);
       }
 
       grid.append(cell);
@@ -447,6 +462,15 @@ export class CalendarBar extends foundry.applications.api.ApplicationV2 {
         const showing = this.grid.viewedMonth ?? { year: date.year, month: date.month };
         // Keeps the time of day, and goes through the same advance path as every other control.
         await advance(worldTimeAtDate(showing.year, showing.month, day, date.secondsIntoDay) - date.worldTime);
+        break;
+      }
+      case "edit-note": {
+        const day = Number(target.dataset["day"]);
+        if (!Number.isFinite(day)) break;
+        const showing = this.grid.viewedMonth ?? { year: date.year, month: date.month };
+        const resolved = getWorldDate(worldTimeAtDate(showing.year, showing.month, day));
+        await openDayNoteEditor(dayKeyAt(showing.year, showing.month, day), `${pad(day)} ${resolved.monthName} ${resolved.year}`);
+        await this.render();
         break;
       }
       case "toggle-compact":

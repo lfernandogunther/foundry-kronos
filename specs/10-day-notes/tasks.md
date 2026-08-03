@@ -20,7 +20,7 @@ everything after it is markup hung off a fact that already works.
       dialog's markup. One new glyph checked into `icons.json` against the upstream codepoint table and
       the font regenerated. `KRONOS.Action.EditNote`, `KRONOS.Note.*` in `lang/en.json`
 
-- [ ] **4. Wired into the grid** — the marker class on any cell `hasNote` names, distinct from
+- [x] **4. Wired into the grid** — the marker class on any cell `hasNote` names, distinct from
       `kronos-today` and `kronos-selected` at all three sizes; the edit-note control on the selected
       cell, beside go-to-day; the `edit-note` click case resolving that cell's `dayKey` via `dayKeyAt`
       and opening the modal. Tests: the control is absent for a player and until a day is selected,

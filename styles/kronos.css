@@ -135,6 +135,7 @@
   --kronos-grid-heading-size: 1rem;
   --kronos-grid-weekday-size: 0.75rem;
   --kronos-grid-number-size: 0.85rem;
+  --kronos-grid-note-size: 6px;
 
   position: relative;
   width: var(--kronos-width);
@@ -242,6 +243,7 @@
   --kronos-grid-heading-size: 0.85rem;
   --kronos-grid-weekday-size: 0.66rem;
   --kronos-grid-number-size: 0.75rem;
+  --kronos-grid-note-size: 5px;
 }
 
 #foundry-kronos .kronos-wrapper.kronos-size-small {
@@ -327,6 +329,7 @@
   --kronos-grid-heading-size: 0.72rem;
   --kronos-grid-weekday-size: 0.6rem;
   --kronos-grid-number-size: 0.68rem;
+  --kronos-grid-note-size: 4px;
 }
 
 #foundry-kronos .kronos-panel {
@@ -749,6 +752,7 @@
 
 #foundry-kronos .kronos-grid-day {
   all: unset;
+  position: relative;
 
   display: flex;
   flex-direction: column;
@@ -764,6 +768,19 @@
 
   cursor: pointer;
   transition: 0.2s;
+}
+
+/* A day carrying a note, independent of it being today's or the selected one. */
+#foundry-kronos .kronos-grid-day.kronos-has-note::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+
+  width: var(--kronos-grid-note-size);
+  height: var(--kronos-grid-note-size);
+  border-radius: 50%;
+  background: var(--kronos-gold);
 }
 
 #foundry-kronos .kronos-grid-day:hover {
@@ -793,14 +810,21 @@
   background: rgb(255 255 255 / 6%);
 }
 
-/* The one control in the grid that moves the clock. */
-#foundry-kronos .kronos-grid-go {
+/* The selected cell's own controls: moving the clock, and the note. */
+#foundry-kronos .kronos-grid-actions {
+  display: flex;
   align-self: flex-end;
+  gap: var(--kronos-grid-gap);
+}
+
+#foundry-kronos .kronos-grid-go,
+#foundry-kronos .kronos-grid-note {
   padding: 0;
   color: var(--kronos-gold);
 }
 
-#foundry-kronos .kronos-grid-go .kronos-icon {
+#foundry-kronos .kronos-grid-go .kronos-icon,
+#foundry-kronos .kronos-grid-note .kronos-icon {
   font-size: var(--kronos-grid-number-size);
 }
 
