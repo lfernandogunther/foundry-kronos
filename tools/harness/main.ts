@@ -19,12 +19,14 @@ import { isWeatherCondition, WEATHER_CONDITIONS } from "../../src/weather/genera
 interface PanelState {
   isGM: boolean;
   grid: boolean;
+  selectedDay: number | null;
   size: string;
   compact: boolean;
   weather: boolean;
   calendar: string;
   worldTime: number;
   condition: string | null;
+  note: string | null;
 }
 
 type Bar = {
@@ -52,15 +54,19 @@ function worldTimeFromParams(): number {
 }
 
 function requested(): PanelState {
+  const selected = Number(params.get("selected"));
+
   return {
     isGM: params.get("player") !== "1",
     grid: params.get("grid") === "1",
+    selectedDay: Number.isFinite(selected) && selected > 0 ? selected : null,
     size: params.get("size") ?? "large",
     compact: params.get("compact") === "1",
     weather: params.get("weather") !== "0",
     calendar: params.get("calendar") ?? "golarion-ar",
     worldTime: worldTimeFromParams(),
     condition: params.get("condition"),
+    note: params.get("note"),
   };
 }
 
@@ -95,8 +101,12 @@ async function build(state: PanelState): Promise<HTMLElement> {
     settings.set(`${MODULE_ID}.weatherOverride`, null);
   }
 
+  // Keyed to the day shown, the same way a weather override is — the day-notes marker needs nothing
+  // more than that key to appear.
+  settings.set(`${MODULE_ID}.dayNotes`, state.note ? { [getWorldDate().dayKey]: state.note } : {});
+
   const bar = getCalendarBar();
-  bar.grid = { open: state.grid, viewedMonth: null, selectedDay: null };
+  bar.grid = { open: state.grid, viewedMonth: null, selectedDay: state.selectedDay };
   return (bar as unknown as Bar)._renderHTML();
 }
 
@@ -154,6 +164,20 @@ async function mountGallery(base: PanelState): Promise<void> {
       "Tarlan — the month",
       { grid: true, calendar: "tarlan", worldTime: Date.parse("2025-12-08T22:00:00Z") / 1000 },
     ],
+    // A picked day carrying a note, at each size — both its own control and go-to-day's sit on the
+    // same cell, which is the spec's open question about whether the small size has room for two.
+    ...["large", "medium", "small"].map(
+      (size): [string, Partial<PanelState>] => [
+        `${size} — a picked day with a note`,
+        {
+          size,
+          grid: true,
+          selectedDay: 8,
+          note: "The party is due back.",
+          worldTime: Date.parse("2025-12-08T22:00:00Z") / 1000,
+        },
+      ],
+    ),
     ...WEATHER_CONDITIONS.map(
       (condition): [string, Partial<PanelState>] => [`Condition: ${condition}`, { condition, worldTime: 43_200 }],
     ),

@@ -68,12 +68,11 @@ re-deriving:
 
 ## Open questions
 
-1. **Does a selected cell have room for two controls** — the existing go-to-day control from round 09
-   and this round's edit-note control — at the small size, where a cell is 61×42px? Measure it in the
-   harness rather than assuming, the way round 09 measured the grid itself before trusting it.
-2. **Which glyph reads as "a note" at three sizes**, small enough that it doesn't need to be looked up
-   from Material Symbols. Pick one and verify it against the upstream codepoint table the way every
-   other bundled icon already is.
+1. ~~**Does a selected cell have room for two controls**~~ **Measured: yes.** At the small size the
+   cell is 61×42px and the two controls together measure about 25×11px, right-aligned with room to
+   spare on every side — no overflow at any of the three sizes.
+2. ~~**Which glyph reads as "a note"**~~ **Settled: `edit_note` (U+e745)**, checked against the
+   upstream codepoint table the way every other bundled icon already is.
 
 ## Touches
 

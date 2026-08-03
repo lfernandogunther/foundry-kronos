@@ -28,7 +28,7 @@ first, written down so it is not re-derived at the keyboard.
 | 07 | Brazilian Portuguese | ours | S | — | **backlog** |
 | 08 | Size and collapse from the panel | ours | S | — | **backlog** |
 | 09 | The month grid | design | M | — | **done** |
-| 10 | Day notes | design | M | 09 for where they show | **spec** |
+| 10 | Day notes | design | M | 09 for where they show | **done** |
 | 11 | Export and import a calendar | design | S | — | pre-spec |
 | 12 | Calendars as world data, and the wizard | design | **L** | 11 | pre-spec |
 | 13 | Per-season light and temperature | design | M | — | pre-spec |
@@ -78,7 +78,7 @@ The pre-spec was wrong about the cost: the inverse arithmetic already exists, so
 And the reference is wrong about the grid — it renders weekday headers but lists days with no leading
 offset, making its columns decorative. We align day 1 to its weekday.
 
-## 10 — Day notes → [spec](10-day-notes/spec.md) · **spec**
+## 10 — Day notes → [spec](10-day-notes/spec.md) · **done**
 
 Text attached to an in-world day, shown in the grid. GM-only, one note per day, keyed by `dayKey` —
 plain and player authorship were both considered and dropped: a world setting cannot be written by a

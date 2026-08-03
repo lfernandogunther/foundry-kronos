@@ -26,7 +26,7 @@ everything after it is markup hung off a fact that already works.
       and opening the modal. Tests: the control is absent for a player and until a day is selected,
       present only on the selected cell, and clicking it does not call `advance`
 
-- [ ] **5. The harness and the README** — a `note` query param seeding `dayNotes` for the day shown, a
+- [x] **5. The harness and the README** — a `note` query param seeding `dayNotes` for the day shown, a
       gallery case with the grid open on a day carrying one, and the README's controls table
 
 ## Verify

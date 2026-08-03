@@ -127,6 +127,7 @@ same instant rather than moving it.
 | unit select | second, round (6s), minute, hour, day, month, year |
 | condition / temperature | GM click opens the weather override |
 | `📅` | Shows or hides the month |
+| `📝` on a picked day | Opens that day's note — write, edit or delete it |
 | `⚙` | Opens the module settings |
 | the tab on the border | Collapses and expands the panel, remembered per client |
 
@@ -145,6 +146,10 @@ the time of day.
 The arrows move a month at a time and never move the clock. Browsing away and letting the clock tick past
 a month boundary leaves you where you were reading rather than yanking you forward; the heading follows
 the clock only while you are still on the current month.
+
+A day carrying a note is marked with a small dot, and the note button on a picked day opens it for
+writing, editing or deleting. Keyed to the day, and lost if you switch to a calendar that keys its days
+differently — the same way a weather override is.
 
 GM only, like the button that opens it.
 
